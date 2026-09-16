@@ -101,6 +101,7 @@ Significant decisions will be recorded here as the project develops.
 
 ## Current Status
 
-**Discovery and requirements definition.** The repository is initialized and
-the project brief is being developed. Architecture, implementation, and test
-artifacts will be added as decisions are made.
+**Frontend integration.** The initial portfolio and booking design has been
+ported into the current Next.js application. The booking form is still a
+client-side email prototype; persistent submissions, private uploads, content
+management, and production integrations remain to be implemented.
