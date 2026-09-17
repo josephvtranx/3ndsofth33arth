@@ -1,13 +1,21 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Halftone from "@/components/Halftone";
 import { ARTIST_EMAIL, HOURLY_RATE, DEPOSIT } from "@/lib/site";
+import {
+  BOOKING_IMAGE_TYPES,
+  MAX_BOOKING_IMAGE_BYTES,
+  MAX_BOOKING_IMAGES,
+  MAX_BOOKING_TOTAL_BYTES,
+  WORK_TYPES,
+  type DesignType,
+  type WorkType,
+} from "@/lib/booking";
 
-type WorkType = "tattoo" | "touch up" | "cover up";
-type DesignType = "custom" | "flash";
-type Attached = { name: string; url: string };
+type Attached = { file: File; url: string };
+type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 const inputCls =
   "w-full box-border bg-[#7d7d7d] border border-[#999] text-white px-3.5 py-3 text-base outline-none font-mono tracking-[0.5px]";
@@ -18,6 +26,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
   return (
     <button
       type="button"
+      aria-pressed={on}
       onClick={onClick}
       className={`flex-1 cursor-pointer border border-[#999] p-2.5 font-mono text-[13px] tracking-[1px] ${
         on ? "bg-paper text-ink" : "bg-transparent text-[#ddd]"
@@ -32,59 +41,135 @@ export default function BookingPage() {
   const [workType, setWorkType] = useState<WorkType>("tattoo");
   const [designType, setDesignType] = useState<DesignType>("custom");
   const [fields, setFields] = useState({
-    name: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "",
+    name: "", email: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "",
   });
   const [is18, setIs18] = useState(false);
   const [files, setFiles] = useState<Attached[]>([]);
-  const [message, setMessage] = useState("");
-  const [note, setNote] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<SubmitStatus>("idle");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [fileError, setFileError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const filesRef = useRef<Attached[]>([]);
+  const submissionIdRef = useRef("");
+
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  useEffect(
+    () => () => {
+      filesRef.current.forEach(({ url }) => URL.revokeObjectURL(url));
+    },
+    [],
+  );
 
   const set = (k: keyof typeof fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((f) => ({ ...f, [k]: e.target.value }));
 
   const addFiles = (list: FileList) => {
-    const imgs = Array.from(list).filter((f) => f.type.startsWith("image/"));
-    setFiles((prev) => prev.concat(imgs.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }))));
-  };
+    const incoming = Array.from(list);
+    const next = files.concat(incoming.map((file) => ({ file, url: URL.createObjectURL(file) })));
+    const totalBytes = next.reduce((total, attached) => total + attached.file.size, 0);
+    let error = "";
 
-  const generate = () => {
-    if (!is18) {
-      setMessage("");
-      setNote("please confirm you are 18+ first.");
+    if (next.length > MAX_BOOKING_IMAGES) error = `please attach no more than ${MAX_BOOKING_IMAGES} images.`;
+    else if (incoming.some((file) => !BOOKING_IMAGE_TYPES.includes(file.type as (typeof BOOKING_IMAGE_TYPES)[number]))) {
+      error = "images must be JPG, PNG, or WebP files.";
+    } else if (incoming.some((file) => file.size > MAX_BOOKING_IMAGE_BYTES)) {
+      error = "each image must be 2.5 MB or smaller.";
+    } else if (totalBytes > MAX_BOOKING_TOTAL_BYTES) {
+      error = "images must be 3.5 MB or smaller combined.";
+    }
+
+    if (error) {
+      next.slice(files.length).forEach(({ url }) => URL.revokeObjectURL(url));
+      setFileError(error);
       return;
     }
-    const v = (s: string) => s.trim() || "—";
-    const msg =
-      "hi esther! i'd like to book with you :)\n\n" +
-      `name: ${v(fields.name)}\n` +
-      `ig: ${v(fields.ig)}\n` +
-      `work type: ${workType}\n` +
-      `placement: ${v(fields.placement)}\n` +
-      `size (w × h, inches): ${v(fields.size)}\n` +
-      `type: ${designType}\n` +
-      `design: ${v(fields.design)}\n` +
-      `budget: ${v(fields.budget)}\n` +
-      `availability: ${v(fields.avail)}\n\n` +
-      (files.length
-        ? `(attaching ${files.length} image${files.length > 1 ? "s" : ""}: ${files.map((f) => f.name).join(", ")})`
-        : "(i'll attach references + placement photo to this email)");
-    setMessage(msg);
-    setCopied(false);
-    setNote("review your inquiry, then send it — remember to attach your images to the email:");
+
+    setFileError("");
+    setFiles(next);
   };
 
-  const copyMsg = () => {
-    navigator.clipboard.writeText(message).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const removeFile = (index: number) => {
+    setFiles((current) => {
+      URL.revokeObjectURL(current[index].url);
+      return current.filter((_, fileIndex) => fileIndex !== index);
     });
+    setFileError("");
   };
+
+  const fallbackMessage = (() => {
+    const v = (s: string) => s.trim() || "—";
+    return [
+      "hi esther! i'd like to book with you :)",
+      "",
+      `name: ${v(fields.name)}`,
+      `email: ${v(fields.email)}`,
+      `ig: ${v(fields.ig)}`,
+      `work type: ${workType}`,
+      `placement: ${v(fields.placement)}`,
+      `size: ${v(fields.size)}`,
+      `type: ${designType}`,
+      `design: ${v(fields.design)}`,
+      `budget: ${v(fields.budget)}`,
+      `availability: ${v(fields.avail)}`,
+      "",
+      files.length ? `(i'll attach ${files.length} reference image${files.length > 1 ? "s" : ""})` : "",
+    ].join("\n");
+  })();
 
   const mailtoHref =
     `mailto:${ARTIST_EMAIL}?subject=${encodeURIComponent(`booking inquiry — ${workType}`)}` +
-    `&body=${encodeURIComponent(message)}`;
+    `&body=${encodeURIComponent(fallbackMessage)}`;
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus("submitting");
+    setStatusMessage("");
+    setFieldErrors({});
+
+    if (!submissionIdRef.current) submissionIdRef.current = crypto.randomUUID();
+
+    const formData = new FormData(event.currentTarget);
+    formData.set("submissionId", submissionIdRef.current);
+    formData.set("workType", workType);
+    formData.set("designType", designType);
+    formData.set("is18", String(is18));
+    files.forEach(({ file }) => formData.append("images", file, file.name));
+
+    try {
+      const response = await fetch("/api/booking", { method: "POST", body: formData });
+      const result = (await response.json().catch(() => null)) as
+        | { success: boolean; error?: string; fieldErrors?: Record<string, string>; confirmationSent?: boolean }
+        | null;
+
+      if (!response.ok || !result?.success) {
+        setStatus("error");
+        setFieldErrors(result?.fieldErrors ?? {});
+        setStatusMessage(result?.error ?? "your inquiry could not be sent. please try again.");
+        return;
+      }
+
+      files.forEach(({ url }) => URL.revokeObjectURL(url));
+      setFiles([]);
+      setFields({ name: "", email: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "" });
+      setWorkType("tattoo");
+      setDesignType("custom");
+      setIs18(false);
+      submissionIdRef.current = "";
+      setStatus("success");
+      setStatusMessage(
+        result.confirmationSent
+          ? "your inquiry is in esther's inbox — check your email for a confirmation."
+          : "your inquiry is in esther's inbox. esther will reply within a couple business days.",
+      );
+    } catch {
+      setStatus("error");
+      setStatusMessage("your inquiry could not be sent. please try again or email esther directly.");
+    }
+  };
 
   return (
     <div className="relative min-h-screen overflow-clip border-l-[6px] border-[#4a4a4a]">
@@ -108,12 +193,19 @@ export default function BookingPage() {
       </header>
 
       <section className="relative mx-auto max-w-[860px] px-6 pb-20 pt-[30px]">
-        <div className="bg-[#6b6b6b] p-[clamp(28px,5vw,56px)] text-[#f2f2f2]">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-[#6b6b6b] p-[clamp(28px,5vw,56px)] text-[#f2f2f2]"
+        >
+          <label className="absolute -left-[10000px]" aria-hidden="true">
+            website
+            <input name="website" type="text" tabIndex={-1} autoComplete="off" />
+          </label>
           <div className="flex flex-col gap-[26px]">
             <div>
               <p className={`${labelCls} mb-2.5`}>work type</p>
               <div className="flex gap-2.5">
-                {(["tattoo", "touch up", "cover up"] as WorkType[]).map((w) => (
+                {WORK_TYPES.map((w) => (
                   <Toggle key={w} on={workType === w} onClick={() => setWorkType(w)}>{w}</Toggle>
                 ))}
               </div>
@@ -122,21 +214,71 @@ export default function BookingPage() {
             <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
               <label className={`flex flex-col gap-2 ${labelCls}`}>
                 name
-                <input type="text" value={fields.name} onChange={set("name")} placeholder="your name" className={inputCls} />
+                <input
+                  name="name"
+                  type="text"
+                  required
+                  maxLength={120}
+                  autoComplete="name"
+                  value={fields.name}
+                  onChange={set("name")}
+                  placeholder="your name"
+                  aria-invalid={Boolean(fieldErrors.name)}
+                  className={inputCls}
+                />
+                {fieldErrors.name && <span className="text-xs text-[#fff1a8]">{fieldErrors.name}</span>}
               </label>
               <label className={`flex flex-col gap-2 ${labelCls}`}>
-                instagram handle
-                <input type="text" value={fields.ig} onChange={set("ig")} placeholder="@yourhandle" className={inputCls} />
+                email
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  maxLength={254}
+                  autoComplete="email"
+                  value={fields.email}
+                  onChange={set("email")}
+                  placeholder="you@example.com"
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  className={inputCls}
+                />
+                {fieldErrors.email && <span className="text-xs text-[#fff1a8]">{fieldErrors.email}</span>}
               </label>
             </div>
+
+            <label className={`flex flex-col gap-2 ${labelCls}`}>
+              instagram handle <span className="text-[#d5d5d5]">(optional)</span>
+              <input
+                name="instagram"
+                type="text"
+                maxLength={80}
+                value={fields.ig}
+                onChange={set("ig")}
+                placeholder="@yourhandle"
+                aria-invalid={Boolean(fieldErrors.instagram)}
+                className={inputCls}
+              />
+              {fieldErrors.instagram && <span className="text-xs text-[#fff1a8]">{fieldErrors.instagram}</span>}
+            </label>
 
             <div>
               <p className={labelCls}>placement on body</p>
               <p className={hintCls}>
                 describe the placement. if you&apos;re comfortable, send a photo of the area with the spot marked
-                (attach it in the DM).
+                (attach it below).
               </p>
-              <input type="text" value={fields.placement} onChange={set("placement")} placeholder="e.g. left upper arm, outer side" className={inputCls} />
+              <input
+                name="placement"
+                type="text"
+                required
+                maxLength={500}
+                value={fields.placement}
+                onChange={set("placement")}
+                placeholder="e.g. left upper arm, outer side"
+                aria-invalid={Boolean(fieldErrors.placement)}
+                className={inputCls}
+              />
+              {fieldErrors.placement && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.placement}</p>}
             </div>
 
             <div>
@@ -144,14 +286,25 @@ export default function BookingPage() {
               <p className={hintCls}>
                 approximate width × height in inches. when we stencil we can resize and adjust as much as you&apos;d like!
               </p>
-              <input type="text" value={fields.size} onChange={set("size")} placeholder="e.g. 4 × 6 in" className={inputCls} />
+              <input
+                name="size"
+                type="text"
+                required
+                maxLength={120}
+                value={fields.size}
+                onChange={set("size")}
+                placeholder="e.g. 4 × 6 in"
+                aria-invalid={Boolean(fieldErrors.size)}
+                className={inputCls}
+              />
+              {fieldErrors.size && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.size}</p>}
             </div>
 
             <div>
               <p className={labelCls}>design</p>
               <p className={hintCls}>
                 for <em>custom designs</em>: a detailed visual description, how much creative freedom you&apos;d like me
-                to have, and reference images (pinterest, other artists, or my account) — attach references in the DM.
+                to have, and reference images (pinterest, other artists, or my account) — attach references below.
                 for <em>flash</em>: which design, plus any adjustments.
               </p>
               <div className="mb-2.5 flex gap-2.5">
@@ -159,23 +312,28 @@ export default function BookingPage() {
                 <Toggle on={designType === "flash"} onClick={() => setDesignType("flash")}>flash</Toggle>
               </div>
               <textarea
+                name="design"
                 rows={4}
+                required
+                maxLength={3000}
                 value={fields.design}
                 onChange={set("design")}
                 placeholder="describe your idea + how much creative freedom i get"
+                aria-invalid={Boolean(fieldErrors.design)}
                 className={`${inputCls} resize-y`}
               />
+              {fieldErrors.design && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.design}</p>}
             </div>
 
             <div>
               <p className={labelCls}>references &amp; placement photos</p>
               <p className={hintCls}>
-                attach reference images or a photo of the placement area — attach these to the email before sending.
+                attach up to {MAX_BOOKING_IMAGES} JPG, PNG, or WebP images — 2.5 MB each and 3.5 MB combined.
               </p>
               <input
                 ref={fileRef}
                 type="file"
-                accept="image/*"
+                accept={BOOKING_IMAGE_TYPES.join(",")}
                 multiple
                 className="hidden"
                 onChange={(e) => {
@@ -187,25 +345,33 @@ export default function BookingPage() {
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
-                className="cursor-pointer border border-dashed border-[#aaa] bg-[#7d7d7d] p-[22px] text-center font-mono text-[13px] tracking-[1px] text-[#e5e5e5] hover:bg-[#858585]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") fileRef.current?.click();
+                }}
+                className="cursor-pointer border border-dashed border-[#aaa] bg-[#7d7d7d] p-[22px] text-center font-mono text-[13px] tracking-[1px] text-[#e5e5e5] hover:bg-[#858585] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 {files.length ? "+ add more images" : "click or drag images here to attach"}
               </div>
+              {(fileError || fieldErrors.images) && (
+                <p className="mt-2 text-xs text-[#fff1a8]">{fileError || fieldErrors.images}</p>
+              )}
               {files.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2.5">
                   {files.map((f, i) => (
                     <div key={f.url} className="relative w-[84px]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={f.url} alt={f.name} className="block h-[84px] w-[84px] border border-[#999] object-cover" />
+                      <img src={f.url} alt={f.file.name} className="block h-[84px] w-[84px] border border-[#999] object-cover" />
                       <button
                         type="button"
-                        title="remove"
-                        onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                        aria-label={`remove ${f.file.name}`}
+                        onClick={() => removeFile(i)}
                         className="absolute -right-2 -top-2 h-[22px] w-[22px] cursor-pointer rounded-full border-none bg-ink text-xs leading-none text-white"
                       >
                         ✕
                       </button>
-                      <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-[#ddd]">{f.name}</p>
+                      <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-[#ddd]">{f.file.name}</p>
                     </div>
                   ))}
                 </div>
@@ -216,62 +382,81 @@ export default function BookingPage() {
               <div>
                 <p className={labelCls}>budget</p>
                 <p className={hintCls}>so i can quote &amp; tailor the design.</p>
-                <input type="text" value={fields.budget} onChange={set("budget")} placeholder="e.g. $250–350" className={inputCls} />
+                <input
+                  name="budget"
+                  type="text"
+                  required
+                  maxLength={120}
+                  value={fields.budget}
+                  onChange={set("budget")}
+                  placeholder="e.g. $250–350"
+                  aria-invalid={Boolean(fieldErrors.budget)}
+                  className={inputCls}
+                />
+                {fieldErrors.budget && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.budget}</p>}
               </div>
               <div>
                 <p className={labelCls}>availability</p>
                 <p className={hintCls}>what month &amp; specific dates work.</p>
-                <input type="text" value={fields.avail} onChange={set("avail")} placeholder="e.g. early october, weekends" className={inputCls} />
+                <input
+                  name="availability"
+                  type="text"
+                  required
+                  maxLength={500}
+                  value={fields.avail}
+                  onChange={set("avail")}
+                  placeholder="e.g. early october, weekends"
+                  aria-invalid={Boolean(fieldErrors.availability)}
+                  className={inputCls}
+                />
+                {fieldErrors.availability && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.availability}</p>}
               </div>
             </div>
 
             <label className="flex cursor-pointer items-center gap-2.5 text-[15px]">
               <input
                 type="checkbox"
+                required
                 checked={is18}
                 onChange={(e) => setIs18(e.target.checked)}
+                aria-invalid={Boolean(fieldErrors.is18)}
                 className="h-[18px] w-[18px] accent-ink"
               />
               i confirm i am 18 or older
             </label>
+            {fieldErrors.is18 && <p className="-mt-4 text-xs text-[#fff1a8]">{fieldErrors.is18}</p>}
 
             <button
-              type="button"
-              onClick={generate}
-              className="cursor-pointer border-none bg-ink p-4 font-mono text-[15px] tracking-[2px] text-white hover:bg-[#333]"
+              type="submit"
+              disabled={status === "submitting"}
+              className="cursor-pointer border-none bg-ink p-4 font-mono text-[15px] tracking-[2px] text-white hover:bg-[#333] disabled:cursor-wait disabled:opacity-60"
             >
-              submit my inquiry ↓
+              {status === "submitting" ? "sending inquiry…" : "submit my inquiry ↓"}
             </button>
 
-            {(message || note) && (
-              <div className="border border-dashed border-[#aaa] bg-[#545454] p-[18px]">
-                <p className="mb-2.5 font-mono text-xs tracking-[1px] text-[#ddd]">{note}</p>
-                {message && (
-                  <pre className="mb-4 whitespace-pre-wrap font-mono text-sm leading-[1.6] text-white">{message}</pre>
-                )}
-                {message && (
-                  <div className="flex flex-wrap gap-2.5">
-                    <a
-                      href={mailtoHref}
-                      className="bg-paper px-5 py-3 font-mono text-[13px] tracking-[1px] !text-ink no-underline hover:bg-[#ddd]"
-                    >
-                      send it — open my email →
-                    </a>
-                    <button
-                      type="button"
-                      onClick={copyMsg}
-                      className="cursor-pointer border border-[#aaa] bg-transparent px-5 py-3 font-mono text-[13px] tracking-[1px] text-white hover:bg-[#666]"
-                    >
-                      {copied ? "copied ✓" : "copy message instead"}
-                    </button>
-                  </div>
+            {statusMessage && (
+              <div
+                role={status === "error" ? "alert" : "status"}
+                aria-live="polite"
+                className={`border border-dashed p-[18px] ${
+                  status === "success" ? "border-[#d6efc7] bg-[#53654e]" : "border-[#ffd3c9] bg-[#6d4f4b]"
+                }`}
+              >
+                <p className="m-0 font-mono text-sm leading-[1.6] text-white">{statusMessage}</p>
+                {status === "error" && (
+                  <a
+                    href={mailtoHref}
+                    className="mt-4 inline-block bg-paper px-5 py-3 font-mono text-[13px] tracking-[1px] !text-ink no-underline hover:bg-[#ddd]"
+                  >
+                    email esther instead →
+                  </a>
                 )}
               </div>
             )}
 
             <p className="m-0 text-center text-sm text-[#d5d5d5]">i will get back to you within a couple business days!</p>
           </div>
-        </div>
+        </form>
       </section>
 
       <section className="relative mx-auto max-w-[720px] px-6 pb-[60px] pt-5">
@@ -297,8 +482,8 @@ export default function BookingPage() {
             <ul className="list-disc pl-[22px] text-[17px] leading-[1.65]">
               <li>
                 i understand that finances may sometimes be a barrier. hourly rates serve as a guideline, but i am more
-                than happy to adjust pricing to fit your budget. just let me know in your DM to discuss what works best
-                for you!
+                than happy to adjust pricing to fit your budget. mention it in your inquiry so we can discuss what works
+                best for you!
               </li>
             </ul>
           </div>
