@@ -1,28 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Halftone from "@/components/Halftone";
+import ProjectDetails from "@/components/ProjectDetails";
+import { PROJECTS } from "@/lib/projects";
 
 const SECTIONS = ["ink", "projects", "socials", "contact"] as const;
 type SectionId = (typeof SECTIONS)[number];
 // labels sit at 12.5 / 37.5 / 62.5 / 87.5% of the rail
 const LABEL_POS = [0.125, 0.375, 0.625, 0.875];
+const DEFAULT_PROJECT_INDEX = Math.max(PROJECTS.findIndex((project) => project.id === "apoptosis"), 0);
 
 const GALLERY = [
-  { src: "/images/gallery-1.png", alt: "sacred heart chest piece" },
-  { src: "/images/gallery-2.png", alt: "tattoo work" },
-  { src: "/images/gallery-3.png", alt: "upper arm engraving piece" },
-  { src: "/images/gallery-4.png", alt: "tattoo work" },
-  { src: "/images/gallery-5.png", alt: "tattoo work" },
-  { src: "/images/gallery-6.png", alt: "shoulder piece with figure" },
-  { src: "/images/gallery-7.png", alt: "tattoo work" },
-];
-
-const PROJECTS = [
-  { id: "soul-searching", name: "soul searching", img: "/images/soul-poster.png", label: "", labelColor: "#fff" },
-  { id: "apoptosis", name: "apoptosis", img: null, label: "apoptosis", labelColor: "#555" },
-  { id: "writing", name: "writing", img: null, label: "writing", labelColor: "#555" },
+  {
+    src: "/images/ink/ink-sleeve-01.jpg",
+    alt: "layered black and gray linework sleeve",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DcShKYMm73j/",
+  },
+  {
+    src: "/images/ink/ink-shoulder-02.jpg",
+    alt: "black and gray shoulder and upper-arm tattoo",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DconIaHGXer/",
+  },
+  {
+    src: "/images/ink/ink-hand-03.jpg",
+    alt: "three monkeys tattoo on the back of a hand",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DcY4u-YG3aN/",
+  },
+  {
+    src: "/images/ink/ink-sleeve-04.jpg",
+    alt: "fine-line illustrative upper-arm sleeve",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DbzVxs5G-Bk/",
+  },
+  {
+    src: "/images/ink/ink-arms-05.jpg",
+    alt: "surreal black and gray tattoos across both arms",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DbCWYSFmxjW/",
+  },
+  {
+    src: "/images/ink/ink-sleeve-06.jpg",
+    alt: "dense illustrative black and gray forearm tattoo",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DahPGAFm_Bv/",
+  },
+  {
+    src: "/images/ink/ink-shoulder-07.jpg",
+    alt: "organic black and gray upper-arm tattoo",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DaHpNJvlZI1/",
+  },
+  {
+    src: "/images/ink/ink-upper-arm-08.jpg",
+    alt: "figurative black and gray upper-arm tattoo",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DbQ2FnmG0px/",
+  },
+  {
+    src: "/images/ink/ink-forearm-09.jpg",
+    alt: "dark illustrative black and gray forearm tattoo",
+    href: "https://www.instagram.com/3ndsofth33arth/p/Da9UBHcmzqw/",
+  },
+  {
+    src: "/images/ink/ink-chest-script-10.jpg",
+    alt: "ornamental script tattoo across the chest",
+    href: "https://www.instagram.com/3ndsofth33arth/p/DaeWlvwm0tF/",
+  },
 ];
 
 function scrollToId(id: string, ev?: React.MouseEvent) {
@@ -31,21 +72,11 @@ function scrollToId(id: string, ev?: React.MouseEvent) {
   if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
 }
 
-function MediaSlot({ label, height }: { label: string; height: number }) {
-  return (
-    <div
-      className="flex w-full items-center justify-center border border-dashed border-[#ccc] bg-[#f3f3f3] font-mono text-[13px] tracking-[1px] text-[#999]"
-      style={{ height }}
-    >
-      {label}
-    </div>
-  );
-}
-
 export default function Home() {
   const [active, setActive] = useState<SectionId>("ink");
   const [markerP, setMarkerP] = useState(0);
-  const [projIndex, setProjIndex] = useState(0);
+  const [projIndex, setProjIndex] = useState(DEFAULT_PROJECT_INDEX);
+  const currentProject = PROJECTS[projIndex];
 
   useEffect(() => {
     const clamp = (v: number) => Math.min(1, Math.max(0, v));
@@ -148,19 +179,45 @@ export default function Home() {
       </header>
 
       {/* artist statement */}
-      <section className="relative mx-auto max-w-[640px] px-6 pb-[140px] pt-10">
-        <p className="mb-14 text-[21px] leading-[1.5] tracking-[-0.02em]">
+      <section className="relative mx-auto max-w-[1120px] px-6 pb-[140px] pt-20 md:pt-10">
+        <div className="grid grid-cols-1 gap-y-12 md:grid-cols-12 md:gap-x-10 md:gap-y-20">
+          <p className="m-0 text-[21px] leading-[1.5] tracking-[-0.02em] md:col-span-7 md:col-start-2">
           is a multidisciplinary artist<br />
           she is either tattooing, writing, or working on mixed media pieces with one intention in mind:
-        </p>
-        <p className="mb-14 max-w-[560px] text-[21px] leading-[1.5] tracking-[-0.02em]">
-          will she be apart of building a kingdom that will die with her, or a Kingdom that will outlive any other?
-        </p>
-        <p className="max-w-[480px] text-[21px] leading-[1.5] tracking-[-0.02em]">
-          this Kingdom is marked by sharing, so she will share what she discovers about it along the way. there is no
-          obligation to come along for the ride, but her hope is that her process might invite you to think more deeply
-          about your own.
-        </p>
+          </p>
+
+          <figure className="m-0 md:col-span-5">
+            <Image
+              src="/images/artist/esther-tattooing.jpg"
+              width={640}
+              height={480}
+              sizes="(max-width: 767px) calc(100vw - 48px), 42vw"
+              alt="Esther tattooing a client's chest"
+              className="block h-auto w-full grayscale contrast-[1.04]"
+            />
+          </figure>
+
+          <p className="m-0 text-[21px] leading-[1.5] tracking-[-0.02em] md:col-span-5 md:col-start-7 md:self-center">
+            will she be apart of building a kingdom that will die with her, or a Kingdom that will outlive any other?
+          </p>
+
+          <p className="m-0 text-[21px] leading-[1.5] tracking-[-0.02em] md:col-span-5 md:col-start-2 md:self-center">
+            this Kingdom is marked by sharing, so she will share what she discovers about it along the way. there is no
+            obligation to come along for the ride, but her hope is that her process might invite you to think more deeply
+            about your own.
+          </p>
+
+          <figure className="m-0 md:col-span-5 md:col-start-7">
+            <Image
+              src="/images/artist/esther-drawing.jpg"
+              width={1349}
+              height={1800}
+              sizes="(max-width: 767px) calc(100vw - 48px), 42vw"
+              alt="Esther sketching on a tablet in her studio"
+              className="block h-auto w-full grayscale contrast-[1.04]"
+            />
+          </figure>
+        </div>
       </section>
 
       {/* ink gallery */}
@@ -170,14 +227,22 @@ export default function Home() {
         <p className="mb-11 font-mono text-sm tracking-[1px] text-[#888]">black &amp; gray · fine line · engraving</p>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[18px]">
           {GALLERY.map((g) => (
-            <figure key={g.src} className="group m-0 h-[380px] cursor-pointer overflow-hidden bg-ink">
+            <a
+              key={g.src}
+              href={g.href}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`view ${g.alt} on Instagram`}
+              className="group block h-[380px] overflow-hidden bg-ink"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={g.src}
                 alt={g.alt}
+                loading="lazy"
                 className="block h-[380px] w-full object-cover grayscale contrast-[1.05] transition-transform duration-[600ms] ease-swoop group-hover:scale-105"
               />
-            </figure>
+            </a>
           ))}
         </div>
         <p className="mt-9 text-center font-mono text-sm">
@@ -212,6 +277,9 @@ export default function Home() {
                 <button
                   type="button"
                   title={p.name}
+                  aria-label={rel === 0 ? `${p.name}, active project` : `show ${p.name}`}
+                  aria-pressed={rel === 0}
+                  aria-controls="project-details"
                   onClick={() => (rel === 0 ? scrollToId(p.id) : setProjIndex(i))}
                   className={`relative flex h-full w-full cursor-pointer items-center justify-center overflow-hidden rounded-full border-0 p-0 transition-[transform,box-shadow] duration-[650ms] ease-swoop hover:shadow-[0_24px_70px_rgba(0,0,0,0.22)] ${scaleCls}`}
                   style={{
@@ -220,16 +288,16 @@ export default function Home() {
                     backgroundSize: "12px 12px",
                   }}
                 >
-                  {p.img && (
+                  {p.cover.image && (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={p.img} alt={p.name} className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={p.cover.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   )}
-                  {p.label && (
+                  {p.cover.label && (
                     <span
                       className="relative text-[clamp(24px,3.4vw,40px)] font-light tracking-[0.04em]"
-                      style={{ color: p.labelColor }}
+                      style={{ color: p.cover.labelColor }}
                     >
-                      {p.label}
+                      {p.cover.label}
                     </span>
                   )}
                 </button>
@@ -239,61 +307,22 @@ export default function Home() {
           <button
             onClick={() => spin(-1)}
             aria-label="previous project"
-            className="absolute left-[calc(50%-clamp(160px,25vw,300px)-70px)] top-[78%] z-10 -translate-y-1/2 cursor-pointer border-none bg-transparent p-2.5 text-[84px] font-extralight leading-none text-[#9a9a9a] hover:text-ink"
+            className="absolute left-3 top-[78%] z-10 -translate-y-1/2 cursor-pointer border-none bg-transparent p-2.5 text-[84px] font-extralight leading-none text-[#9a9a9a] hover:text-ink md:left-[calc(50%-clamp(160px,25vw,300px)-70px)]"
           >
             ‹
           </button>
           <button
             onClick={() => spin(1)}
             aria-label="next project"
-            className="absolute right-[calc(50%-clamp(160px,25vw,300px)-70px)] top-[78%] z-10 -translate-y-1/2 cursor-pointer border-none bg-transparent p-2.5 text-[84px] font-extralight leading-none text-[#9a9a9a] hover:text-ink"
+            className="absolute right-3 top-[78%] z-10 -translate-y-1/2 cursor-pointer border-none bg-transparent p-2.5 text-[84px] font-extralight leading-none text-[#9a9a9a] hover:text-ink md:right-[calc(50%-clamp(160px,25vw,300px)-70px)]"
           >
             ›
           </button>
         </div>
 
-        {projIndex === 0 && (
-          <article id="soul-searching" className="mx-auto max-w-[900px]">
-            <h3 className="mb-2 text-center text-[clamp(36px,5vw,60px)] font-light tracking-[0.02em]">soul searching</h3>
-            <p className="mb-10 text-center font-mono text-sm tracking-[1px] text-[#888]">
-              a street outreach series — lost &amp; found posters for the soul
-            </p>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] items-start gap-[18px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/soul-poster.png" alt="soul searching — poster" className="block w-full border border-[#e5e5e5]" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/soul-pole.png" alt="soul searching — posted on a utility pole" className="block w-full border border-[#e5e5e5]" />
-            </div>
-            <div className="mt-[18px] grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[18px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/soul-card-front.png" alt="soul searching — card front" className="block w-full border border-[#e5e5e5]" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/soul-card-back.png" alt="soul searching — card back" className="block w-full border border-[#e5e5e5]" />
-            </div>
-          </article>
-        )}
-
-        {projIndex === 1 && (
-          <article id="apoptosis" className="mx-auto max-w-[720px]">
-            <h3 className="mb-2 text-center text-[clamp(36px,5vw,60px)] font-light tracking-[0.02em]">apoptosis</h3>
-            <p className="mb-10 text-center font-mono text-sm tracking-[1px] text-[#888]">mixed media · in progress</p>
-            <div className="flex flex-col gap-[18px]">
-              <MediaSlot label="apoptosis piece #1 — coming soon" height={620} />
-              <MediaSlot label="apoptosis piece #2 — coming soon" height={620} />
-            </div>
-          </article>
-        )}
-
-        {projIndex === 2 && (
-          <article id="writing" className="mx-auto max-w-[720px]">
-            <h3 className="mb-2 text-center text-[clamp(36px,5vw,60px)] font-light tracking-[0.02em]">writing</h3>
-            <p className="mb-10 text-center font-mono text-sm tracking-[1px] text-[#888]">words along the way</p>
-            <div className="flex flex-col gap-[18px]">
-              <MediaSlot label="writing excerpt #1 — coming soon" height={520} />
-              <MediaSlot label="writing excerpt #2 — coming soon" height={520} />
-            </div>
-          </article>
-        )}
+        <div id="project-details" aria-live="polite">
+          <ProjectDetails key={currentProject.id} project={currentProject} />
+        </div>
       </section>
 
       {/* socials */}
