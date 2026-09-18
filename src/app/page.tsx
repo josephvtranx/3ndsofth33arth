@@ -69,7 +69,10 @@ const GALLERY = [
 function scrollToId(id: string, ev?: React.MouseEvent) {
   ev?.preventDefault();
   const el = document.getElementById(id);
-  if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 30, behavior: "smooth" });
+  if (el) window.scrollTo({
+    top: el.getBoundingClientRect().top + window.scrollY - 80,
+    behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+  });
 }
 
 export default function Home() {
@@ -140,16 +143,16 @@ export default function Home() {
     <div className="relative min-h-screen overflow-clip border-l-[6px] border-[#4a4a4a]">
       <div className="fixed left-[34px] top-7 z-50 text-[30px] leading-none">✺</div>
 
-      {/* mobile booking link (rail is hidden below md) */}
+      {/* Keep the compact booking link on phones and tablets. */}
       <Link
         href="/booking"
-        className="fixed right-5 top-7 z-50 bg-ink px-3.5 py-2 font-mono text-[13px] tracking-[1px] !text-paper no-underline md:hidden"
+        className="fixed right-5 top-7 z-50 flex min-h-11 items-center bg-ink px-3.5 py-2 font-mono text-[13px] tracking-[1px] !text-paper no-underline xl:hidden"
       >
         booking →
       </Link>
 
       {/* rail nav */}
-      <nav className="fixed right-11 top-1/2 z-50 hidden h-[46vh] w-[130px] -translate-y-1/2 font-mono text-[15px] md:block">
+      <nav aria-label="Portfolio sections" className="fixed right-11 top-1/2 z-50 hidden h-[46vh] w-[130px] -translate-y-1/2 font-mono text-[15px] xl:block">
         <div className="absolute -right-[18px] bottom-0 top-0 w-[3px] rounded-sm bg-[#ddd]" />
         <div
           className="absolute -right-[25px] h-[17px] w-[17px] -mt-[8.5px] rounded-full bg-ink transition-[top] duration-[120ms] ease-linear"
@@ -168,18 +171,18 @@ export default function Home() {
       </nav>
 
       {/* hero */}
-      <header className="relative flex min-h-[96vh] items-center justify-center">
+      <header className="relative flex min-h-[96svh] items-center justify-center md:min-h-[96vh]">
         <Halftone className="left-[12%] top-[6%]" size={300} dot={2.4} gap={16} color="#dcdcdc" />
         <Halftone className="right-[10%] top-[14%]" size={420} dot={3} gap={22} color="#e3e3e3" inner={15} outer={68} />
         <Halftone className="bottom-[4%] left-[30%]" size={260} dot={1.8} gap={11} inner={25} outer={72} />
         <div className="px-6 text-center">
           <h1 className="m-0 font-pixel text-[clamp(64px,10vw,132px)] font-normal tracking-[-2px]">esther ko</h1>
-          <p className="mt-2.5 font-mono text-[15px] tracking-[2px] text-[#888]">tattoo · writing · mixed media</p>
+          <p className="mt-2.5 font-mono text-[13px] tracking-[1px] text-[#888] sm:text-[15px] sm:tracking-[2px]">tattoo · writing · mixed media</p>
         </div>
       </header>
 
       {/* artist statement */}
-      <section className="relative mx-auto max-w-[1120px] px-6 pb-[140px] pt-20 md:pt-10">
+      <section className="relative mx-auto max-w-[1120px] px-6 pb-20 pt-16 md:pb-[140px] md:pt-10">
         <div className="grid grid-cols-1 gap-y-12 md:grid-cols-12 md:gap-x-10 md:gap-y-20">
           <p className="m-0 text-[21px] leading-[1.5] tracking-[-0.02em] md:col-span-7 md:col-start-2">
           is a multidisciplinary artist<br />
@@ -225,22 +228,22 @@ export default function Home() {
         <Halftone className="right-[16%] top-[30px]" size={340} dot={2.6} gap={18} color="#e2e2e2" inner={18} />
         <h2 className="mb-3 text-[clamp(56px,7vw,96px)] font-medium tracking-[-0.04em]">ink</h2>
         <p className="mb-11 font-mono text-sm tracking-[1px] text-[#888]">black &amp; gray · fine line · engraving</p>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-[18px]">
-          {GALLERY.map((g) => (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-[18px]">
+          {GALLERY.map((g, index) => (
             <a
               key={g.src}
               href={g.href}
               target="_blank"
               rel="noreferrer"
               aria-label={`view ${g.alt} on Instagram`}
-              className="group block h-[380px] overflow-hidden bg-ink"
+              className={`group aspect-[4/5] overflow-hidden bg-ink md:aspect-auto md:h-[380px] ${index < 5 ? "block" : "hidden md:block"}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={g.src}
                 alt={g.alt}
                 loading="lazy"
-                className="block h-[380px] w-full object-cover grayscale contrast-[1.05] transition-transform duration-[600ms] ease-swoop group-hover:scale-105"
+                className="block h-full w-full object-cover grayscale contrast-[1.05] transition-transform duration-[600ms] ease-swoop group-hover:scale-105 motion-reduce:transition-none"
               />
             </a>
           ))}
@@ -255,7 +258,8 @@ export default function Home() {
         <Halftone className="left-[8%] top-[60px]" size={280} dot={2} gap={13} color="#e4e4e4" inner={22} />
         <h2 className="mb-2 text-center text-[clamp(56px,7vw,96px)] font-light tracking-[-0.02em]">projects</h2>
         <p className="mb-5 text-center font-mono text-sm tracking-[1px] text-[#888]">
-          hover to look closer · click the center to visit · sides to spin
+          <span className="md:hidden">tap the center to explore · arrows to switch</span>
+          <span className="hidden md:inline">select the center to explore · arrows to switch</span>
         </p>
         <div className="relative mb-[70px] ml-[calc(50%-50vw)] h-[clamp(380px,52vw,640px)] w-screen overflow-visible">
           {PROJECTS.map((p, i) => {
@@ -271,7 +275,7 @@ export default function Home() {
             return (
               <div
                 key={p.id}
-                className="absolute h-[clamp(320px,50vw,600px)] w-[clamp(320px,50vw,600px)] -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-[650ms] ease-swoop"
+                className="absolute h-[min(80vw,320px)] w-[min(80vw,320px)] -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-[650ms] ease-swoop motion-reduce:transition-none sm:h-[clamp(320px,50vw,600px)] sm:w-[clamp(320px,50vw,600px)]"
                 style={pos}
               >
                 <button
@@ -281,7 +285,7 @@ export default function Home() {
                   aria-pressed={rel === 0}
                   aria-controls="project-details"
                   onClick={() => (rel === 0 ? scrollToId(p.id) : setProjIndex(i))}
-                  className={`relative flex h-full w-full cursor-pointer items-center justify-center overflow-hidden rounded-full border-0 p-0 transition-[transform,box-shadow] duration-[650ms] ease-swoop hover:shadow-[0_24px_70px_rgba(0,0,0,0.22)] ${scaleCls}`}
+                  className={`relative flex h-full w-full cursor-pointer items-center justify-center overflow-hidden rounded-full border-0 p-0 transition-[transform,box-shadow] duration-[650ms] ease-swoop hover:shadow-[0_24px_70px_rgba(0,0,0,0.22)] motion-reduce:transition-none ${scaleCls}`}
                   style={{
                     background: "#d6d6d6",
                     backgroundImage: "radial-gradient(circle, #c6c6c6 2px, transparent 2.2px)",

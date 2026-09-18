@@ -9,11 +9,11 @@ type Props = {
 };
 
 const GROUP_CLASSES: Record<ProjectMediaGroup["layout"], string> = {
-  grid: "grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] items-start gap-[18px]",
+  grid: "grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] items-start gap-[18px]",
   "stage-grid":
     "grid grid-cols-1 items-start gap-[18px] sm:grid-cols-2 lg:grid-cols-6 [&>figure>div]:aspect-[2/3] [&>figure>div>img]:h-full [&>figure>div>img]:border-0 [&>figure>div>img]:object-cover lg:[&>*]:col-span-2 lg:[&>*:nth-child(4)]:col-start-2 lg:[&>*:nth-child(5)]:col-start-4",
   "wide-grid":
-    "grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[18px]",
+    "grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-[18px]",
   stack: "flex flex-col gap-[18px]",
 };
 
@@ -91,7 +91,7 @@ export default function ProjectDetails({ project }: Props) {
           className={groupIndex > 0 ? (group.title ? "mt-20" : "mt-[18px]") : ""}
         >
           {(group.title || group.link) && (
-            <div className="mb-5 flex items-baseline justify-between gap-5">
+            <div className="mb-5 flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
               {group.title && (
                 <h4 className="font-mono text-[13px] tracking-[2px] text-[#777]">
                   {group.title}
@@ -102,7 +102,7 @@ export default function ProjectDetails({ project }: Props) {
                   href={group.link.href}
                   target={group.link.newTab ? "_blank" : undefined}
                   rel={group.link.newTab ? "noopener noreferrer" : undefined}
-                  className="shrink-0 font-mono text-[12px] tracking-[1px] underline underline-offset-4"
+                  className="inline-flex min-h-11 items-center font-mono text-[12px] tracking-[1px] underline underline-offset-4"
                 >
                   {group.link.label}
                 </a>

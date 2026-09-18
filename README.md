@@ -1,107 +1,92 @@
 # 3ndsofth33arth
 
-A code repository for building a portfolio and tattoo-booking platform around
-an artist's real creative practice.
+A portfolio and tattoo-booking platform built around an artist's real creative
+practice. A collaboration between **Esther Ko** and **Joseph Tran**.
 
-## Overview
+[Visit the site](https://3ndsofth33arth.com)
 
-3ndsofth33arth is a collaboration between **Esther Ko** and **Joseph Tran**.
+## Why I Built It
 
-This repository documents both the finished product and the reasoning behind
-it: how ambiguous creative ideas become product requirements, how the system
-is structured, and which tradeoffs shape the implementation.
+The goal was to give Esther's tattoo work, writing, and mixed-media projects a
+shared home—and give prospective clients a clear way to start a booking inquiry.
+I translated the design into a working web application, connected the inquiry
+flow to email, and deployed it with a custom domain while preserving the site's
+visual identity.
 
-## What I Am Building
+## What's Built
 
-The product combines two experiences that have different user needs:
+- Responsive portfolio with a tattoo gallery, artist biography, and project views.
+- Apoptosis collection with individual artworks and a link to the complete book.
+- Tattoo inquiries covering design, placement, size, budget, and availability.
+- Up to 10 reference photos, with browser-side resizing for larger uploads.
+- Server-validated inquiries sent through Resend, plus client confirmation emails.
+- Homepage-based social sharing preview and deployment on Vercel.
 
-1. **A creative portfolio** that gives Esther's work enough visual space and
-   preserves her artistic identity.
-2. **A tattoo-booking experience** that helps prospective clients understand
-   her work, prepare the right information, and submit a useful inquiry.
+## Stack & Decisions
 
-The challenge is to make the booking flow clear and dependable without making
-the portfolio feel like a generic service-business website.
+| Choice | Why |
+| --- | --- |
+| Next.js 16 App Router, React 19, TypeScript | Keep the portfolio, interactive UI, and server-side booking endpoint in one application. |
+| Tailwind CSS 4 and custom components | Implement the supplied visual direction without introducing a component-library dependency. |
+| Typed project content and local media | Keep project layouts consistent and content version-controlled. Updates currently require a code change; there is no CMS. |
+| Resend with a server-only API key | Deliver inquiries and reference photos to an inbox without exposing credentials to the browser. |
+| Browser-side image preparation | Fit larger reference photos into a bounded upload payload without changing the client's originals. |
+| Vercel with GitHub deployment | Publish updates through the repository and serve the site on its custom domain. |
 
-## Why I Am Building It
+## Booking Architecture
 
-Artists often have to split their presence across social platforms, portfolio
-tools, form builders, and direct messages. That fragmentation makes it harder
-to control presentation, maintain accurate information, and consistently
-collect the details needed from potential clients.
+The browser prepares photos and submits the form to `POST /api/booking`.
+The server validates fields and attachment limits before sending the inquiry
+through Resend, then attempts a separate confirmation email to the client.
 
-3ndsofth33arth creates one intentional home for the work and the workflow
-around it. For me, the project is also an opportunity to demonstrate product
-thinking alongside implementation: requirements discovery, interface design,
-architecture, integration work, testing, deployment, and iteration with a real
-stakeholder.
+The endpoint includes an origin check, a honeypot, provider timeouts, and
+idempotency keys. If the confirmation email fails after the inquiry is accepted,
+the form still reports the inquiry as successful.
 
-## Product Requirements
+This is an **inquiry workflow**, not an instant reservation system. Scheduling
+and deposits are handled outside the app. There is no application database or
+upload store; submitted details and photos are sent through email. Persistent
+inquiry tracking and stronger abuse controls remain future improvements.
 
-The initial product is expected to support:
+## Local Development
 
-- A responsive, image-led portfolio for artwork and selected projects.
-- A dedicated tattoo portfolio and information area.
-- A structured booking inquiry that gathers actionable client requirements.
-- Clear communication of process, policies, availability, and contact options.
-- A content workflow that does not require an engineer for routine updates.
-- A high-quality experience on both mobile and desktop.
+Use Node.js 22+ and the pnpm version pinned in `package.json`.
 
-## Engineering Priorities
+```bash
+pnpm install
+cp .env.example .env.local
+pnpm dev
+```
 
-- **Creative flexibility:** the implementation should support expressive
-  layouts without sacrificing usability or maintainability.
-- **Content ownership:** Esther should be able to keep important content
-  current without editing source code.
-- **Accessible interaction:** navigation, media, forms, and feedback should be
-  usable with keyboards, assistive technology, and reduced-motion settings.
-- **Performance:** image-heavy pages should remain fast on mobile networks.
-- **Reliable inquiries:** booking submissions must be validated, protected
-  against abuse, and delivered without losing client information.
-- **Privacy:** collect only the information needed for the tattoo inquiry and
-  define how that information is retained.
+Open [localhost:3000](http://localhost:3000). Configure the following private
+variables in `.env.local` to enable email sending; never commit credentials.
 
-## Architecture
+<!-- AUTO-GENERATED: environment reference from .env.example and booking route -->
 
-The application is initialized with Next.js 16, the App Router, TypeScript,
-Tailwind CSS 4, and pnpm. The content-management and booking infrastructure
-will be selected after the editing workflow, booking process, integration
-needs, and deployment constraints are clarified.
+| Variable | Purpose |
+| --- | --- |
+| `RESEND_API_KEY` | Required for sending email through Resend. |
+| `BOOKING_FROM_EMAIL` | Required sender address on a verified domain, optionally formatted as `Name <address>`. |
+| `BOOKING_TO_EMAIL` | Inquiry recipient; defaults to the artist email in `src/lib/site.ts` if omitted. |
 
-Architecture documentation will cover:
+<!-- END AUTO-GENERATED -->
 
-- Application and rendering strategy.
-- Content modeling and content-management approach.
-- Media storage, optimization, and delivery.
-- Booking form validation, persistence, and notifications.
-- Authentication and authorization, if an administrative interface is needed.
-- Hosting, deployment, observability, backups, and recovery.
+## Verification
 
-## Decision Log
+<!-- AUTO-GENERATED: command reference from package.json -->
 
-Significant decisions will be recorded here as the project develops.
+| Command | Purpose |
+| --- | --- |
+| `pnpm dev` | Start local development with Turbopack. |
+| `pnpm lint` | Run ESLint. |
+| `pnpm test` | Run focused image-preparation and attachment-validation tests. |
+| `pnpm build` | Create a production build using webpack. |
+| `pnpm build:turbopack` | Run the alternative Turbopack production build. |
+| `pnpm start` | Serve a completed production build locally. |
 
-| Status | Decision | Rationale |
-| --- | --- | --- |
-| Accepted | Treat the portfolio and booking flow as one product. | Visitors should be able to move from discovering Esther's work to making an inquiry without switching platforms or losing context. |
-| Accepted | Separate creative ownership from technical ownership. | Esther retains control of the artistic direction while I remain accountable for feasibility, implementation quality, and system operation. |
-| Accepted | Use Next.js with the App Router and TypeScript. | One application can support portfolio rendering, interactive experiences, and server-side booking workflows while maintaining a shared type system. |
-| Pending | Choose the content-management approach. | The editing experience must be evaluated with the person who will maintain the content. |
-| Pending | Define the booking architecture. | The workflow may require forms, scheduling, notifications, deposits, or manual approval; discovery will determine the correct boundary. |
+<!-- END AUTO-GENERATED -->
 
-## Planned Delivery
-
-1. Define users, content, booking rules, and success criteria.
-2. Establish the visual system and information architecture with Esther.
-3. Select and document the technical architecture.
-4. Build the portfolio and content workflow.
-5. Implement and secure the tattoo inquiry flow.
-6. Test accessibility, responsiveness, performance, and failure states.
-7. Deploy, observe real usage, and iterate.
-
-## Current Status
-
-**Frontend integration.** The initial portfolio and booking design has been
-ported into the current Next.js application. The booking form is still a
-client-side email prototype; persistent submissions, private uploads, content
-management, and production integrations remain to be implemented.
+Production builds use webpack because Turbopack's CSS worker cannot bind its
+temporary port in the managed development environment. The focused tests cover
+resizing, corrupt and oversized images, resource cleanup, and upload limits;
+they do not verify live email delivery.
