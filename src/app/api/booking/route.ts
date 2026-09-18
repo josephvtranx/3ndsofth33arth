@@ -1,44 +1,27 @@
-import { Buffer } from "node:buffer";
 import { ARTIST_EMAIL } from "@/lib/site";
 import { formatBookingInquiry, validateBookingForm } from "@/lib/booking";
+import { prepareEmailAttachments, type EmailAttachment } from "./images";
+import { BookingRequestError, readBookingForm, validateRequestHeaders } from "./request";
 
 export const runtime = "nodejs";
 
 function jsonError(error: string, status: number, fieldErrors?: Record<string, string>) {
-  return Response.json({ success: false, error, fieldErrors }, { status });
-}
-
-function safeFilename(filename: string, index: number) {
-  const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 100);
-  return cleaned || `reference-${index + 1}.jpg`;
+  return Response.json({ success: false, error, fieldErrors }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(request: Request) {
-  const origin = request.headers.get("origin");
-  if (origin) {
-    try {
-      if (new URL(origin).host !== new URL(request.url).host) {
-        return jsonError("this submission could not be verified.", 403);
-      }
-    } catch {
-      return jsonError("this submission could not be verified.", 403);
-    }
-  }
-
-  if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
-    return jsonError("invalid form submission.", 415);
-  }
-
   let formData: FormData;
   try {
-    formData = await request.formData();
-  } catch {
+    validateRequestHeaders(request);
+    formData = await readBookingForm(request);
+  } catch (error) {
+    if (error instanceof BookingRequestError) return jsonError(error.message, error.status);
     return jsonError("the form could not be read. please try again.", 400);
   }
 
   // Quietly accept bot submissions that fill the hidden honeypot field.
   if (String(formData.get("website") ?? "").trim()) {
-    return Response.json({ success: true });
+    return Response.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
   }
 
   const validation = validateBookingForm(formData);
@@ -57,12 +40,14 @@ export async function POST(request: Request) {
 
   const { inquiry, images } = validation;
   const subjectName = inquiry.name.replace(/[\r\n]+/g, " ");
-  const attachments = await Promise.all(
-    images.map(async (image, index) => ({
-      filename: safeFilename(image.name, index),
-      content: Buffer.from(await image.arrayBuffer()).toString("base64"),
-    })),
-  );
+  let attachments: EmailAttachment[];
+  try {
+    attachments = await prepareEmailAttachments(images);
+  } catch {
+    return jsonError("please check your reference photos and try again.", 400, {
+      images: "one or more photos could not be verified. please choose still JPG, PNG, or WebP images.",
+    });
+  }
 
   let response: Response;
   try {
@@ -83,8 +68,8 @@ export async function POST(request: Request) {
       }),
       signal: AbortSignal.timeout(15_000),
     });
-  } catch (error) {
-    console.error(JSON.stringify({ event: "booking_email_request_failed", error: String(error) }));
+  } catch {
+    console.error(JSON.stringify({ event: "booking_email_request_failed" }));
     return jsonError("your inquiry could not be sent right now. please try again or email esther directly.", 502);
   }
 
@@ -93,7 +78,6 @@ export async function POST(request: Request) {
       JSON.stringify({
         event: "booking_email_failed",
         status: response.status,
-        providerResponse: (await response.text()).slice(0, 1_000),
       }),
     );
     return jsonError("your inquiry could not be sent right now. please try again or email esther directly.", 502);
@@ -133,9 +117,9 @@ export async function POST(request: Request) {
     if (!confirmation.ok) {
       console.warn(JSON.stringify({ event: "booking_confirmation_failed", status: confirmation.status }));
     }
-  } catch (error) {
-    console.warn(JSON.stringify({ event: "booking_confirmation_request_failed", error: String(error) }));
+  } catch {
+    console.warn(JSON.stringify({ event: "booking_confirmation_request_failed" }));
   }
 
-  return Response.json({ success: true, confirmationSent });
+  return Response.json({ success: true, confirmationSent }, { headers: { "Cache-Control": "no-store" } });
 }

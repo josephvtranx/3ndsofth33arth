@@ -36,12 +36,20 @@ visual identity.
 ## Booking Architecture
 
 The browser prepares photos and submits the form to `POST /api/booking`.
-The server validates fields and attachment limits before sending the inquiry
-through Resend, then attempts a separate confirmation email to the client.
+The server validates fields and attachment limits, then decodes and re-encodes
+photos as metadata-free JPEGs before sending the inquiry through Resend. It
+then attempts a separate confirmation email to the client.
 
-The endpoint includes an origin check, a honeypot, provider timeouts, and
-idempotency keys. If the confirmation email fails after the inquiry is accepted,
-the form still reports the inquiry as successful.
+The endpoint requires a matching origin and includes a honeypot, a bounded
+4 MiB request reader, upload/provider timeouts, and idempotency keys. Invalid
+image contents, unsupported types, and oversized pixel dimensions are rejected.
+If the confirmation email fails after the inquiry is accepted, the form still
+reports the inquiry as successful.
+
+Response headers block framing and content-type sniffing and limit referrer
+disclosure. The baseline Content Security Policy restricts framing, plugins,
+base URLs, and native form destinations; a strict script policy and shared
+submission rate limits are not yet implemented.
 
 This is an **inquiry workflow**, not an instant reservation system. Scheduling
 and deposits are handled outside the app. There is no application database or
@@ -79,7 +87,7 @@ variables in `.env.local` to enable email sending; never commit credentials.
 | --- | --- |
 | `pnpm dev` | Start local development with Turbopack. |
 | `pnpm lint` | Run ESLint. |
-| `pnpm test` | Run focused image-preparation and attachment-validation tests. |
+| `pnpm test` | Run image preparation, upload security, request validation, and mocked email-flow tests. |
 | `pnpm build` | Create a production build using webpack. |
 | `pnpm build:turbopack` | Run the alternative Turbopack production build. |
 | `pnpm start` | Serve a completed production build locally. |
@@ -87,6 +95,6 @@ variables in `.env.local` to enable email sending; never commit credentials.
 <!-- END AUTO-GENERATED -->
 
 Production builds use webpack because Turbopack's CSS worker cannot bind its
-temporary port in the managed development environment. The focused tests cover
-resizing, corrupt and oversized images, resource cleanup, and upload limits;
-they do not verify live email delivery.
+temporary port in the managed development environment. Tests cover resizing,
+corrupt and spoofed images, metadata removal, upload limits, origin checks, and
+mocked email failure states; they do not verify live email delivery.
