@@ -4,7 +4,7 @@ export const DESIGN_TYPES = ["custom", "flash"] as const;
 export type WorkType = (typeof WORK_TYPES)[number];
 export type DesignType = (typeof DESIGN_TYPES)[number];
 
-export const MAX_BOOKING_IMAGES = 4;
+export const MAX_BOOKING_IMAGES = 10;
 export const MAX_BOOKING_IMAGE_BYTES = 2.5 * 1024 * 1024;
 export const MAX_BOOKING_TOTAL_BYTES = 3.5 * 1024 * 1024;
 

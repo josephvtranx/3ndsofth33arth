@@ -6,13 +6,13 @@ import Halftone from "@/components/Halftone";
 import { ARTIST_EMAIL, HOURLY_RATE, DEPOSIT } from "@/lib/site";
 import {
   BOOKING_IMAGE_TYPES,
-  MAX_BOOKING_IMAGE_BYTES,
   MAX_BOOKING_IMAGES,
   MAX_BOOKING_TOTAL_BYTES,
   WORK_TYPES,
   type DesignType,
   type WorkType,
 } from "@/lib/booking";
+import { MAX_SOURCE_IMAGE_BYTES, prepareBookingImage } from "./prepare-image";
 
 type Attached = { file: File; url: string };
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
@@ -49,6 +49,9 @@ export default function BookingPage() {
   const [statusMessage, setStatusMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [fileError, setFileError] = useState("");
+  const [preparingImages, setPreparingImages] = useState(false);
+  const preparingRef = useRef(false);
+  const mountedRef = useRef(true);
   const fileRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef<Attached[]>([]);
   const submissionIdRef = useRef("");
@@ -57,46 +60,66 @@ export default function BookingPage() {
     filesRef.current = files;
   }, [files]);
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
       filesRef.current.forEach(({ url }) => URL.revokeObjectURL(url));
-    },
-    [],
-  );
+    };
+  }, []);
 
   const set = (k: keyof typeof fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((f) => ({ ...f, [k]: e.target.value }));
 
-  const addFiles = (list: FileList) => {
+  const addFiles = async (list: FileList) => {
+    if (preparingRef.current || status === "submitting") return;
     const incoming = Array.from(list);
-    const next = files.concat(incoming.map((file) => ({ file, url: URL.createObjectURL(file) })));
-    const totalBytes = next.reduce((total, attached) => total + attached.file.size, 0);
+    if (!incoming.length) return;
     let error = "";
 
-    if (next.length > MAX_BOOKING_IMAGES) error = `please attach no more than ${MAX_BOOKING_IMAGES} images.`;
+    if (filesRef.current.length + incoming.length > MAX_BOOKING_IMAGES) error = `please attach no more than ${MAX_BOOKING_IMAGES} images.`;
     else if (incoming.some((file) => !BOOKING_IMAGE_TYPES.includes(file.type as (typeof BOOKING_IMAGE_TYPES)[number]))) {
       error = "images must be JPG, PNG, or WebP files.";
-    } else if (incoming.some((file) => file.size > MAX_BOOKING_IMAGE_BYTES)) {
-      error = "each image must be 2.5 MB or smaller.";
-    } else if (totalBytes > MAX_BOOKING_TOTAL_BYTES) {
-      error = "images must be 3.5 MB or smaller combined.";
+    } else if (incoming.some((file) => file.size > MAX_SOURCE_IMAGE_BYTES)) {
+      error = "each original photo must be 20 MB or smaller.";
     }
 
     if (error) {
-      next.slice(files.length).forEach(({ url }) => URL.revokeObjectURL(url));
       setFileError(error);
       return;
     }
 
+    preparingRef.current = true;
+    setPreparingImages(true);
     setFileError("");
-    setFiles(next);
+    setFieldErrors((current) => ({ ...current, images: "" }));
+    try {
+      const prepared: File[] = [];
+      // Process sequentially to avoid decoding ten full-resolution photos at once.
+      for (const file of incoming) {
+        prepared.push(await prepareBookingImage(file, Math.floor(MAX_BOOKING_TOTAL_BYTES / MAX_BOOKING_IMAGES)));
+        if (!mountedRef.current) return;
+      }
+      const next = filesRef.current.concat(prepared.map((file) => ({ file, url: URL.createObjectURL(file) })));
+      filesRef.current = next;
+      setFiles(next);
+      submissionIdRef.current = "";
+    } catch (error) {
+      if (mountedRef.current) {
+        setFileError(error instanceof Error ? error.message : "photos could not be prepared. please try again.");
+      }
+    } finally {
+      preparingRef.current = false;
+      if (mountedRef.current) setPreparingImages(false);
+    }
   };
 
   const removeFile = (index: number) => {
-    setFiles((current) => {
-      URL.revokeObjectURL(current[index].url);
-      return current.filter((_, fileIndex) => fileIndex !== index);
-    });
+    if (preparingRef.current || status === "submitting") return;
+    URL.revokeObjectURL(filesRef.current[index].url);
+    filesRef.current = filesRef.current.filter((_, fileIndex) => fileIndex !== index);
+    setFiles(filesRef.current);
+    submissionIdRef.current = "";
     setFileError("");
   };
 
@@ -126,6 +149,7 @@ export default function BookingPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (preparingRef.current || status === "submitting") return;
     setStatus("submitting");
     setStatusMessage("");
     setFieldErrors({});
@@ -153,6 +177,7 @@ export default function BookingPage() {
       }
 
       files.forEach(({ url }) => URL.revokeObjectURL(url));
+      filesRef.current = [];
       setFiles([]);
       setFields({ name: "", email: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "" });
       setWorkType("tattoo");
@@ -326,36 +351,34 @@ export default function BookingPage() {
             </div>
 
             <div>
-              <p className={labelCls}>references &amp; placement photos</p>
-              <p className={hintCls}>
-                attach up to {MAX_BOOKING_IMAGES} JPG, PNG, or WebP images — 2.5 MB each and 3.5 MB combined.
-              </p>
+              <p className={`${labelCls} mb-2.5`}>references &amp; placement photos</p>
               <input
                 ref={fileRef}
                 type="file"
                 accept={BOOKING_IMAGE_TYPES.join(",")}
                 multiple
+                disabled={preparingImages || status === "submitting"}
                 className="hidden"
                 onChange={(e) => {
                   if (e.target.files) addFiles(e.target.files);
                   e.target.value = "";
                 }}
               />
-              <div
+              <button
+                type="button"
+                disabled={preparingImages || status === "submitting" || files.length >= MAX_BOOKING_IMAGES}
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") fileRef.current?.click();
-                }}
-                className="cursor-pointer border border-dashed border-[#aaa] bg-[#7d7d7d] p-[22px] text-center font-mono text-[13px] tracking-[1px] text-[#e5e5e5] hover:bg-[#858585] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                className="w-full cursor-pointer border border-dashed border-[#aaa] bg-[#7d7d7d] p-[22px] text-center font-mono text-[13px] tracking-[1px] text-[#e5e5e5] hover:bg-[#858585] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-default disabled:opacity-60"
               >
-                {files.length ? "+ add more images" : "click or drag images here to attach"}
-              </div>
+                {preparingImages ? "preparing photos…" : files.length >= MAX_BOOKING_IMAGES ? "all 10 photos added" : files.length ? "+ add more images" : "click or drag images here to attach"}
+              </button>
+              <p role="status" className="mt-2 text-xs text-[#d5d5d5]">
+                {preparingImages ? "resizing your photos — this may take a moment." : `${files.length} of ${MAX_BOOKING_IMAGES} photos attached`}
+              </p>
               {(fileError || fieldErrors.images) && (
-                <p className="mt-2 text-xs text-[#fff1a8]">{fileError || fieldErrors.images}</p>
+                <p role="alert" className="mt-2 text-xs text-[#fff1a8]">{fileError || fieldErrors.images}</p>
               )}
               {files.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2.5">
@@ -366,6 +389,7 @@ export default function BookingPage() {
                       <button
                         type="button"
                         aria-label={`remove ${f.file.name}`}
+                        disabled={preparingImages || status === "submitting"}
                         onClick={() => removeFile(i)}
                         className="absolute -right-2 -top-2 h-[22px] w-[22px] cursor-pointer rounded-full border-none bg-ink text-xs leading-none text-white"
                       >
@@ -397,7 +421,7 @@ export default function BookingPage() {
               </div>
               <div>
                 <p className={labelCls}>availability</p>
-                <p className={hintCls}>what month &amp; specific dates work.</p>
+                <p className={hintCls}>what month, specific dates, or range</p>
                 <input
                   name="availability"
                   type="text"
@@ -405,7 +429,7 @@ export default function BookingPage() {
                   maxLength={500}
                   value={fields.avail}
                   onChange={set("avail")}
-                  placeholder="e.g. early october, weekends"
+                  placeholder="e.g. october 5–12, weekends"
                   aria-invalid={Boolean(fieldErrors.availability)}
                   className={inputCls}
                 />
@@ -428,7 +452,7 @@ export default function BookingPage() {
 
             <button
               type="submit"
-              disabled={status === "submitting"}
+              disabled={status === "submitting" || preparingImages}
               className="cursor-pointer border-none bg-ink p-4 font-mono text-[15px] tracking-[2px] text-white hover:bg-[#333] disabled:cursor-wait disabled:opacity-60"
             >
               {status === "submitting" ? "sending inquiry…" : "submit my inquiry ↓"}
@@ -505,7 +529,7 @@ export default function BookingPage() {
             <h3 className="mb-2.5 text-[26px] font-bold tracking-[-0.02em]">cover ups</h3>
             <ul className="flex list-disc flex-col gap-1.5 pl-[22px] text-[17px] leading-[1.65]">
               <li>i&apos;m open to doing cover-ups, but only depending on the style of the existing work.</li>
-              <li>i&apos;m also happy to do add-ons to previous pieces. shoot me a DM for a consultation.</li>
+              <li>i&apos;m also happy to do add-ons to previous pieces. shoot me an email and i&apos;ll get back to you with a consultation.</li>
             </ul>
           </div>
           <div>
