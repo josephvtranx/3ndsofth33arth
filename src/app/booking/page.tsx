@@ -199,7 +199,7 @@ export default function BookingPage() {
   return (
     <div className="relative min-h-screen overflow-clip border-l-[6px] border-[#4a4a4a]">
       <div className="fixed left-[34px] top-7 z-50 text-[30px] leading-none">✺</div>
-      <Link href="/" className="fixed right-11 top-8 z-50 font-mono text-sm tracking-[1px]">
+      <Link href="/home" className="fixed right-11 top-8 z-50 font-mono text-sm tracking-[1px]">
         ← esther ko
       </Link>
 
@@ -541,7 +541,7 @@ export default function BookingPage() {
           </div>
         </div>
         <p className="mt-[100px] text-center font-mono text-xs tracking-[1px] text-[#aaa]">
-          ✺ <Link href="/">esther ko</Link> · @3ndsofth33arth
+          ✺ <Link href="/home">esther ko</Link> · @3ndsofth33arth
         </p>
       </section>
     </div>

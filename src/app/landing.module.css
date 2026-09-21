@@ -1,0 +1,200 @@
+.landing {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  border: 3px solid #4a4a4a;
+  background: #fdfdfd;
+}
+
+.star {
+  position: absolute;
+  top: 4.2%;
+  left: 2.4%;
+  font-size: clamp(28px, 2.6vw, 48px);
+  line-height: 1;
+}
+
+/* Animate the lenses, never the dot grid or its origin. */
+@property --lens-x {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --lens-y {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+
+@property --lens-scale {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 1;
+}
+
+.dotField {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --dot-gap: clamp(16px, 1.47vw, 30px);
+  --dot-radius: clamp(2.4px, 0.24vw, 5px);
+  background-image: radial-gradient(circle, #ededed 0.8px, transparent 1.1px);
+  background-size: var(--dot-gap) var(--dot-gap);
+}
+
+.lens, .lens::before, .lens::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lens::before, .lens::after {
+  content: "";
+  background-size: var(--dot-gap) var(--dot-gap);
+  background-position: 0 0;
+  mask-repeat: no-repeat;
+}
+
+.lens::before {
+  background-image: radial-gradient(circle, #dedede calc(var(--dot-radius) * 0.6), transparent calc(var(--dot-radius) * 0.6 + 0.4px));
+  mask-image: radial-gradient(circle calc(var(--lens-radius) * var(--lens-scale)) at var(--lens-x) var(--lens-y), #000 15%, transparent 100%);
+}
+
+.lens::after {
+  background-image: radial-gradient(circle, #d9d9d9 calc(var(--dot-radius) * 1.15), transparent calc(var(--dot-radius) * 1.15 + 0.4px));
+  mask-image: radial-gradient(circle calc(var(--lens-radius) * var(--lens-scale)) at var(--lens-x) var(--lens-y), #000 8%, transparent 78%);
+}
+
+.dotsLeft {
+  --lens-x: 25%;
+  --lens-y: 26%;
+  --lens-radius: clamp(150px, 16vw, 340px);
+  animation: driftLeft 6s ease-in-out -1.5s infinite alternate,
+    pulseLens 4.5s ease-in-out -1s infinite alternate;
+}
+
+.dotsRight {
+  --lens-x: 72%;
+  --lens-y: 41%;
+  --lens-radius: clamp(185px, 21vw, 440px);
+  animation: driftRight 7.5s ease-in-out -3s infinite alternate,
+    pulseLens 5.5s ease-in-out -3s infinite alternate;
+}
+
+.dotsBottom {
+  --lens-x: 42%;
+  --lens-y: 77%;
+  --lens-radius: clamp(135px, 14vw, 300px);
+  animation: driftBottom 6.5s ease-in-out -2s infinite alternate,
+    pulseLens 3.8s ease-in-out -2s infinite alternate;
+}
+
+@keyframes pulseLens {
+  from { --lens-scale: 0.72; }
+  to { --lens-scale: 1.22; }
+}
+
+@keyframes driftLeft {
+  from { --lens-x: 17%; --lens-y: 19%; }
+  50% { --lens-x: 28%; --lens-y: 38%; }
+  to { --lens-x: 43%; --lens-y: 22%; }
+}
+
+@keyframes driftRight {
+  from { --lens-x: 83%; --lens-y: 28%; }
+  50% { --lens-x: 69%; --lens-y: 46%; }
+  to { --lens-x: 57%; --lens-y: 60%; }
+}
+
+@keyframes driftBottom {
+  from { --lens-x: 26%; --lens-y: 83%; }
+  50% { --lens-x: 43%; --lens-y: 65%; }
+  to { --lens-x: 62%; --lens-y: 79%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens { animation: none; }
+}
+
+.enter {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: #111;
+}
+
+.enter:hover { color: #111; }
+.enter:focus-visible { outline-offset: -9px; }
+
+.identity {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.identity h1 {
+  position: absolute;
+  top: 40.5%;
+  top: round(nearest, 40.5%, 1px);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-vt323), monospace;
+  font-size: clamp(68px, 8.5vw, 204px);
+  font-size: round(nearest, clamp(68px, 8.5vw, 204px), 1px);
+  font-weight: 400;
+  /* Keep the pixel face crisp instead of inheriting grayscale smoothing. */
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: auto;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.identity p {
+  position: absolute;
+  top: 59.5%;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  font-family: var(--font-cutive-mono), monospace;
+  font-size: clamp(12px, 1.2vw, 22px);
+  letter-spacing: clamp(1px, 0.2vw, 4px);
+  color: #888;
+}
+
+.booking {
+  position: absolute;
+  z-index: 1;
+  top: 3.8%;
+  right: 1.1%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  background: #111;
+  color: #fdfdfd;
+  font-family: var(--font-cutive-mono), monospace;
+  font-size: clamp(13px, 1vw, 18px);
+  letter-spacing: 2px;
+}
+
+.booking:hover { background: #333; color: #fff; }
+.booking:focus-visible { outline-color: #111; }
+
+@media (max-width: 600px) {
+  .star { left: 20px; top: 24px; }
+  .booking { right: 18px; top: 18px; padding: 8px 12px; }
+  .identity h1 {
+    top: 42%;
+    top: round(nearest, 42%, 1px);
+    font-size: clamp(56px, 14.5vw, 87px);
+    font-size: round(nearest, clamp(56px, 14.5vw, 87px), 1px);
+  }
+  .identity p { top: 56%; letter-spacing: 1px; }
+}
