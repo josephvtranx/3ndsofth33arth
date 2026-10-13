@@ -1,6 +1,6 @@
 // Site-wide constants — edit these in one place.
-export const CONTACT_EMAIL = "contact@rhwldo.com";
-export const ARTIST_EMAIL = "3ndsofth33arth@gmail.com";
+export const CONTACT_EMAIL = "3ndsofth33arth@gmail.com";
+export const ARTIST_EMAIL = CONTACT_EMAIL;
 export const INSTAGRAM = "3ndsofth33arth";
 export const HOURLY_RATE = "$140–180";
 export const DEPOSIT = "$80";
