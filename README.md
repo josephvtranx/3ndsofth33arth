@@ -1,64 +1,63 @@
 # 3ndsofth33arth
 
-A portfolio and tattoo-booking platform built around an artist's real creative
-practice. A collaboration between **Esther Ko** and **Joseph Tran**.
+A live portfolio and tattoo inquiry platform for **Esther Ko**, built in collaboration with **Joseph Tran**. It brings Esther’s tattoo work, writing, and mixed-media projects together and turns booking requests into organized email conversations.
 
-[Visit the site](https://3ndsofth33arth.com)
+**[View the portfolio](https://www.3ndsofth33arth.com/home)** · **[View the booking experience](https://www.3ndsofth33arth.com/booking)**
 
-## Why I Built It
+## My contribution
 
-The goal was to give Esther's tattoo work, writing, and mixed-media projects a
-shared home—and give prospective clients a clear way to start a booking inquiry.
-I translated the design into a working web application, connected the inquiry
-flow to email, and deployed it with a custom domain while preserving the site's
-visual identity.
+I translated Esther’s visual direction and mockups into a responsive web application, built the booking and worldwide waitlist workflows, integrated email delivery and Instagram media, and shipped the site through GitHub and Vercel on a custom domain.
 
-## What's Built
+The project evolved through direct feedback from Esther: refining image presentation, making navigation consistent, simplifying the mobile booking experience, and improving how inquiries arrive in her inbox. It is a working site for an artist’s practice, with ongoing changes driven by how she and her clients use it.
 
-- Responsive portfolio with a tattoo gallery, artist biography, and project views.
-- Apoptosis collection with individual artworks and a link to the complete book.
-- Tattoo inquiries covering design, placement, size, budget, and availability.
-- Up to 10 reference photos, with browser-side resizing for larger uploads.
-- Server-validated inquiries sent through Resend, plus client confirmation emails.
-- Homepage-based social sharing preview and deployment on Vercel.
+## What’s shipped
 
-## Stack & Decisions
+- **Portfolio:** an Apoptosis collection showcase, artwork details, a complete-book link, artist biography, contact page, and Instagram-powered Ink gallery.
+- **Booking inquiries:** a mobile-friendly form for design ideas, placement, size, budget, availability, Instagram handle, and up to 10 reference photos.
+- **Worldwide waitlist:** a separate form collecting city, country, and contact details so Esther can gauge interest in future visits. Emails include `WORLDWIDE WAITLIST` and the location in the subject for easy inbox filtering.
+- **Email delivery:** structured artist notifications and customer confirmations through Resend, with a shared HTML layout and plain-text alternatives.
+- **Instagram token renewal:** a scheduled server-side workflow with private token storage, reducing the need for manual token updates.
+- **Production deployment:** a custom domain on Vercel, with updates published from GitHub.
 
-| Choice | Why |
+The site opens directly to the portfolio. The original landing page is preserved in the code for future use. The Works page currently displays “Coming soon.” Booking is available through a shareable, noindex route; it is not an authenticated or private page.
+
+## Engineering decisions
+
+| Decision | Purpose |
 | --- | --- |
-| Next.js 16 App Router, React 19, TypeScript | Keep the portfolio, interactive UI, and server-side booking endpoint in one application. |
-| Tailwind CSS 4 and custom components | Implement the supplied visual direction without introducing a component-library dependency. |
-| Typed project content and local media | Keep project layouts consistent and content version-controlled. Updates currently require a code change; there is no CMS. |
-| Resend with a server-only API key | Deliver inquiries and reference photos to an inbox without exposing credentials to the browser. |
-| Browser-side image preparation | Fit larger reference photos into a bounded upload payload without changing the client's originals. |
-| Vercel with GitHub deployment | Publish updates through the repository and serve the site on its custom domain. |
+| Next.js 16 App Router, React 19, and TypeScript | Keep portfolio pages, interactive forms, and server endpoints in one application. |
+| Tailwind CSS 4, CSS modules, and custom components | Implement Esther’s supplied visual direction without a component-library dependency. |
+| Typed content and local artwork assets | Keep portfolio content and media changes reviewable in version control. |
+| Browser-side image preparation plus server-side validation | Support reference photos from phones while bounding request sizes and rejecting invalid uploads. |
+| Resend with server-only credentials | Deliver requests and attachments to Esther’s inbox without exposing the email API key. |
+| Private Vercel Blob storage and a scheduled renewal endpoint | Persist refreshed Instagram tokens across deployments. |
+| Email-based booking and waitlist workflows | Fit the artist’s existing workflow without introducing an admin dashboard or booking database. |
 
-## Booking Architecture
+## From form to inbox
 
-The browser prepares photos and submits the form to `POST /api/booking`.
-The server validates fields and attachment limits, then decodes and re-encodes
-photos as metadata-free JPEGs before sending the inquiry through Resend. It
-then attempts a separate confirmation email to the client.
+A booking submission goes to `POST /api/booking`. The browser prepares reference photos; the server validates the request and decodes and re-encodes accepted images as metadata-free JPEGs before attaching them to the artist’s email. A separate email confirms receipt to the client.
 
-The endpoint requires a matching origin and includes a honeypot, a bounded
-4 MiB request reader, upload/provider timeouts, and idempotency keys. Invalid
-image contents, unsupported types, and oversized pixel dimensions are rejected.
-If the confirmation email fails after the inquiry is accepted, the form still
-reports the inquiry as successful.
+The endpoint includes matching-origin checks, a honeypot, a bounded 4 MiB request reader, timeouts, and email idempotency keys. Unsupported image types, invalid image contents, and excessive pixel dimensions are rejected. If the artist’s email is accepted but the client confirmation fails, the form still reports success to avoid encouraging duplicate inquiries.
 
-Response headers block framing and content-type sniffing and limit referrer
-disclosure. The baseline Content Security Policy restricts framing, plugins,
-base URLs, and native form destinations; a strict script policy and shared
-submission rate limits are not yet implemented.
+The worldwide waitlist uses `POST /api/waitlist`, validates contact and location fields, and requires age and contact consent. Both workflows send to the configured artist inbox. Submitted content is escaped before being placed in the shared HTML email template.
 
-This is an **inquiry workflow**, not an instant reservation system. Scheduling
-and deposits are handled outside the app. There is no application database or
-upload store; submitted details and photos are sent through email. Persistent
-inquiry tracking and stronger abuse controls remain future improvements.
+These are **inquiry and interest workflows**, not instant reservations. Appointments, travel plans, and deposits are handled outside the application. Waitlist signup does not guarantee a visit or appointment, and requests are managed through email rather than an application database.
 
-## Local Development
+## Keeping the gallery connected
 
-Use Node.js 22+ and the pnpm version pinned in `package.json`.
+A Vercel cron calls `/api/cron/instagram` daily at 10:00 UTC. The endpoint is protected by a server-only secret and refreshes an eligible Instagram token when 30 days or less remain. Refreshed credentials are saved in private Blob storage; conditional writes protect against concurrent updates. Tokens refreshed within the last 24 hours are skipped.
+
+Expired or revoked tokens still require new authorization. Renewal failures are logged without exposing credentials; email alerts are not implemented.
+
+## Validation and practical limits
+
+The automated suite covers image resizing, corrupt and spoofed uploads, metadata removal, request limits, origin checks, waitlist validation, mocked email delivery and failure cases, and HTML escaping. ESLint and a production build provide additional checks. Browser checks cover responsive layouts and form interactions.
+
+Automated email tests mock the provider; they do not prove real inbox delivery. The application also does not yet have shared submission rate limiting, persistent inquiry tracking, or a strict script Content Security Policy. These are areas for further hardening as usage grows.
+
+## Working on the project
+
+Built with Node.js 22+ and the pnpm version pinned in `package.json`.
 
 ```bash
 pnpm install
@@ -66,59 +65,12 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open [localhost:3000](http://localhost:3000). Configure the following private
-variables in `.env.local` to enable email sending; never commit credentials.
+`pnpm test`, `pnpm lint`, and `pnpm build` run the main verification checks. Local development uses Turbopack; the default production build uses webpack to accommodate the managed development environment.
 
-<!-- AUTO-GENERATED: environment reference from .env.example and booking route -->
+`.env.example` documents the server-only email, Instagram, and storage configuration. Email delivery requires a Resend key and a verified sender; `BOOKING_TO_EMAIL` controls the recipient for both booking and waitlist requests. Production token renewal uses a private Blob store and `CRON_SECRET`. Credentials belong in local or hosting environment settings, never in source control.
 
-| Variable | Purpose |
-| --- | --- |
-| `RESEND_API_KEY` | Required for sending email through Resend. |
-| `BOOKING_FROM_EMAIL` | Required sender address on a verified domain, optionally formatted as `Name <address>`. |
-| `BOOKING_TO_EMAIL` | Inquiry recipient; defaults to the artist email in `src/lib/site.ts` if omitted. |
+---
 
-<!-- END AUTO-GENERATED -->
+**Creative direction and artwork:** Esther Ko
 
-## Verification
-
-<!-- AUTO-GENERATED: command reference from package.json -->
-
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Start local development with Turbopack. |
-| `pnpm lint` | Run ESLint. |
-| `pnpm test` | Run image preparation, upload security, request validation, and mocked email-flow tests. |
-| `pnpm build` | Create a production build using webpack. |
-| `pnpm build:turbopack` | Run the alternative Turbopack production build. |
-| `pnpm start` | Serve a completed production build locally. |
-
-<!-- END AUTO-GENERATED -->
-
-Production builds use webpack because Turbopack's CSS worker cannot bind its
-temporary port in the managed development environment. Tests cover resizing,
-corrupt and spoofed images, metadata removal, upload limits, origin checks, and
-mocked email failure states; they do not verify live email delivery.
-
-### Instagram token renewal
-
-The production Vercel cron calls `/api/cron/instagram` daily at 10:00 UTC.
-It refreshes when 30 days or less remain, stores the returned token and expiry,
-and skips tokens refreshed within the last 24 hours. The first run refreshes the
-existing `INSTAGRAM_ACCESS_TOKEN`; it must already be an eligible long-lived token.
-Expired or revoked tokens require a new Instagram authorization.
-
-Activation (not enabled by local development):
-1. Connect a **private** Vercel Blob store to this project's **Production** environment only.
-   Set its `BLOB_READ_WRITE_TOKEN`; never connect a public store or share the production store with previews.
-2. Set a random production `CRON_SECRET` (at least 32 random bytes), plus the existing
-   `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID`. Keep all values server-only.
-3. Deploy, then run the cron through the Vercel dashboard and confirm a successful response.
-   Responses contain only renewal status and expiration time, never a token.
-4. Check Vercel cron/function failures; this implementation logs safe failures but does
-   not send email alerts. Confirm the Ink gallery remains live after the first refresh.
-
-Private storage reads bypass cached token versions. Conditional writes prevent a
-concurrent renewal from silently replacing a newer record. A failed read or refresh
-does not overwrite the saved token. Without storage configured the gallery continues
-using its environment token; the renewal endpoint returns 503. Never log raw Meta
-refresh URLs or errors: the refresh API carries the credential in its query string.
+**Web development and deployment:** Joseph Tran
