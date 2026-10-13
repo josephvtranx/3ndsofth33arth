@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import WorldwideWaitlist from "./WorldwideWaitlist";
-import Halftone from "@/components/Halftone";
 import { ARTIST_EMAIL, HOURLY_RATE, DEPOSIT } from "@/lib/site";
 import {
   BOOKING_IMAGE_TYPES,
@@ -197,13 +196,10 @@ export default function BookingPage() {
 
   return (
     <div className="relative min-h-screen overflow-clip border-l-[6px] border-[#4a4a4a]">
-      <div className="fixed left-[34px] top-7 z-50 text-[30px] leading-none">✺</div>
       <Link href="/home" className="fixed right-11 top-8 z-50 font-mono text-sm tracking-[1px]">
         ← esther ko
       </Link>
 
-      <Halftone className="right-[8%] top-10" size={360} dot={2.6} gap={18} inner={18} />
-      <Halftone className="left-[4%] top-[500px]" size={280} dot={2} gap={12} color="#e5e5e5" inner={22} />
 
       <header className="mx-auto max-w-[860px] px-6 pb-[30px] pt-[110px]">
         <h1 className="m-0 text-[clamp(40px,6vw,76px)] font-extralight tracking-[-0.03em]">
@@ -518,7 +514,6 @@ export default function BookingPage() {
       </section>
 
       <section className="relative mx-auto max-w-[720px] px-6 pb-[140px] pt-5">
-        <Halftone className="-right-[10%] bottom-10" size={300} dot={2.4} gap={16} color="#e3e3e3" />
         <h2 className="mb-9 text-[clamp(40px,5vw,64px)] font-bold tracking-[-0.03em]">NOTES</h2>
         <div className="flex flex-col gap-10">
           <div>
