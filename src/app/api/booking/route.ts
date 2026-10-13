@@ -103,7 +103,6 @@ export async function POST(request: Request) {
           "",
           "your tattoo inquiry made it to esther's inbox. she will get back to you via instagram dm.",
           "",
-          `work type: ${inquiry.workType}`,
           `placement: ${inquiry.placement}`,
           `size: ${inquiry.size}`,
           `design: ${inquiry.design}`,

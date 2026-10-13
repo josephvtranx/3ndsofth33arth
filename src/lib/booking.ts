@@ -126,7 +126,6 @@ export function formatBookingInquiry(inquiry: BookingInquiry, imageNames: string
     `name: ${inquiry.name}`,
     `email: ${inquiry.email}`,
     `instagram: ${inquiry.instagram || "—"}`,
-    `work type: ${inquiry.workType}`,
     `placement: ${inquiry.placement}`,
     `size: ${inquiry.size}`,
     `design type: ${inquiry.designType}`,
