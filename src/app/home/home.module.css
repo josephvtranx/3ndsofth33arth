@@ -157,7 +157,9 @@
 .workLinks a { text-decoration: none; }
 .workLinks span { color: #888; }
 .footer { display: flex; justify-content: center; gap: clamp(72px, 12vw, 180px); padding: 96px 24px 150px; font-size: 12px; }
-.footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
+.footer a { display: inline-flex; align-items: center; justify-content: center; min-width: 64px; min-height: 44px; padding: 0 8px; text-decoration: underline; text-underline-offset: 4px; }
+.footer a:hover { text-decoration-thickness: 2px; }
+.footer a:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
 
 @media (max-width: 600px) {
   .projectHeading { padding-top: 12px; }

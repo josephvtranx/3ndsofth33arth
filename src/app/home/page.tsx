@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import PortfolioHeader from "./PortfolioHeader";
 import ArtworkCard from "./ArtworkCard";
-import { ARTIST_EMAIL } from "@/lib/site";
 import styles from "./home.module.css";
 
 const movements = [
@@ -106,7 +105,7 @@ export default function Home() {
       </section>
       <footer className={styles.footer}>
         <a href="#top">Back to Top</a>
-        <a href={`mailto:${ARTIST_EMAIL}`}>Email</a>
+        <Link href="/contact" aria-label="View Esther’s email and contact details">Email</Link>
       </footer>
     </main>
   );

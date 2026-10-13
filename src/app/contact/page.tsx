@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { CONTACT_EMAIL } from "@/lib/site";
 import PortfolioHeader from "../home/PortfolioHeader";
 import styles from "./contact.module.css";
 
@@ -28,7 +29,7 @@ export default function ContactPage() {
           </section>
           <section aria-labelledby="contact-title" className={styles.contacts}>
             <h2 id="contact-title">CONTACT</h2>
-            <a href="mailto:contact@rhwldo.com">contact@rhwldo.com</a>
+            <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
             <a href="https://www.instagram.com/3ndsofth33arth/" target="_blank" rel="noreferrer">https://www.instagram.com/3ndsofth33arth/</a>
             <a href="https://www.tiktok.com/@3ndsofth33arth" target="_blank" rel="noreferrer">https://www.tiktok.com/@3ndsofth33arth</a>
           </section>
