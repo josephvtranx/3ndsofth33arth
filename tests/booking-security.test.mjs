@@ -24,6 +24,7 @@ const imagesUrl = await moduleUrl("../src/app/api/booking/images.ts", {
 const { prepareEmailAttachments } = await import(imagesUrl);
 const { readBookingForm, validateRequestHeaders, MAX_REQUEST_BYTES } = await import(requestUrl);
 const { POST } = await import(await moduleUrl("../src/app/api/booking/route.ts", {
+  "@/lib/email-template": await moduleUrl("../src/lib/email-template.ts"),
   "@/lib/booking": bookingUrl,
   "@/lib/site": await moduleUrl("../src/lib/site.ts"),
   "./images": imagesUrl,

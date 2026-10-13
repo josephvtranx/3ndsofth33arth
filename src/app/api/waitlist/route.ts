@@ -1,3 +1,4 @@
+import { renderEmail } from "@/lib/email-template";
 import { ARTIST_EMAIL } from "@/lib/site";
 import { validateWaitlist } from "@/lib/waitlist";
 import { BookingRequestError, readBookingForm, validateRequestHeaders } from "../booking/request";
@@ -28,6 +29,12 @@ export async function POST(request: Request) {
   try {
     const result = await send({ to: [to], reply_to: fields.email,
       subject: `WORLDWIDE WAITLIST — ${fields.city}, ${fields.country} — ${fields.name}`,
+      html: renderEmail({
+        eyebrow: "WORLDWIDE WAITLIST", title: `${fields.city}, ${fields.country}`,
+        paragraphs: [`${fields.name} would love to hear about a visit to their city.`],
+        details: [["NAME", fields.name], ["EMAIL", fields.email], ["CITY", fields.city], ["COUNTRY", fields.country], ["INSTAGRAM", fields.instagram]],
+        note: "18+ confirmed. Agreed to be contacted about visits to their city. This is an expression of interest, not a confirmed appointment.",
+      }),
       text: ["WORLDWIDE WAITLIST", "", `name: ${fields.name}`, `email: ${fields.email}`, `city: ${fields.city}`, `country: ${fields.country}`, `instagram: ${fields.instagram}`, "", "18+ confirmed. Agreed to be contacted about visits to their city.", "This is an expression of interest, not a confirmed appointment."].join("\n"),
     }, "artist");
     if (!result.ok) throw new Error("Delivery failed");
@@ -38,6 +45,12 @@ export async function POST(request: Request) {
   try {
     const result = await send({ to: [fields.email], reply_to: to,
       subject: "your 3ndsofth33arth worldwide waitlist request",
+      html: renderEmail({
+        eyebrow: "WORLDWIDE WAITLIST", title: "You’re on the list.",
+        paragraphs: [`hi ${fields.name},`, "thanks for letting me know where you are. esther may contact you via instagram dm or email if she plans a visit."],
+        details: [["YOUR CITY", `${fields.city}, ${fields.country}`], ["INSTAGRAM", fields.instagram]],
+        note: "this is not a confirmed appointment or a promise of travel. to update your city or leave the list, reply to this email.",
+      }),
       text: `hi ${fields.name},\n\nyou’re on the worldwide waitlist for ${fields.city}, ${fields.country}. esther may contact you via instagram dm or email if she plans a visit.\n\nthis is not a confirmed appointment or a promise of travel. to update your city or leave the list, reply to this email.`,
     }, "confirmation");
     confirmationSent = result.ok;

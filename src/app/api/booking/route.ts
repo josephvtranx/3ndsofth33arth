@@ -1,3 +1,4 @@
+import { renderEmail } from "@/lib/email-template";
 import { ARTIST_EMAIL } from "@/lib/site";
 import { formatBookingInquiry, validateBookingForm } from "@/lib/booking";
 import { prepareEmailAttachments, type EmailAttachment } from "./images";
@@ -63,6 +64,12 @@ export async function POST(request: Request) {
         to: [to],
         reply_to: inquiry.email,
         subject: `booking inquiry — ${inquiry.workType} — ${subjectName}`,
+        html: renderEmail({
+          eyebrow: "BOOKING INQUIRY", title: "A new inquiry.",
+          paragraphs: [`${inquiry.name} has submitted a tattoo inquiry.`],
+          details: [["NAME", inquiry.name], ["EMAIL", inquiry.email], ["INSTAGRAM", inquiry.instagram], ["PLACEMENT", inquiry.placement], ["SIZE", inquiry.size], ["DESIGN TYPE", inquiry.designType], ["DESIGN", inquiry.design], ["BUDGET", inquiry.budget], ["AVAILABILITY", inquiry.availability], ["REFERENCE PHOTOS", attachments.length ? `${attachments.length} attached to this email` : "None attached"]],
+          note: "This is an inquiry, not a confirmed appointment.",
+        }),
         text: formatBookingInquiry(inquiry, attachments.map((attachment) => attachment.filename)),
         attachments,
       }),
@@ -98,6 +105,12 @@ export async function POST(request: Request) {
         to: [inquiry.email],
         reply_to: to,
         subject: "your 3ndsofth33arth booking inquiry",
+        html: renderEmail({
+          eyebrow: "BOOKING INQUIRY RECEIVED", title: "Your idea is in my inbox.",
+          paragraphs: [`hi ${inquiry.name},`, "your tattoo inquiry made it to esther’s inbox. she will get back to you via instagram dm."],
+          details: [["INSTAGRAM", inquiry.instagram], ["PLACEMENT", inquiry.placement], ["SIZE", inquiry.size], ["DESIGN", inquiry.design]],
+          note: "please don’t send a follow-up while you wait; it can prolong your spot in the waitlist.",
+        }),
         text: [
           `hi ${inquiry.name},`,
           "",

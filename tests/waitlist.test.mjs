@@ -11,6 +11,7 @@ async function moduleUrl(path, replacements = {}) {
 const validator = await moduleUrl('../src/lib/waitlist.ts');
 const { validateWaitlist } = await import(validator);
 const { POST } = await import(await moduleUrl('../src/app/api/waitlist/route.ts', {
+  '@/lib/email-template': await moduleUrl('../src/lib/email-template.ts'),
   '@/lib/waitlist': validator,
   '@/lib/site': await moduleUrl('../src/lib/site.ts'),
   '../booking/request': await moduleUrl('../src/app/api/booking/request.ts'),
