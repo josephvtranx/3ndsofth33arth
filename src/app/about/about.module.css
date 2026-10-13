@@ -4,7 +4,6 @@
   background: #fff;
 }
 
-.page > header { min-height: clamp(100px, 13vw, 180px); }
 
 .statement {
   width: 91.2%;
@@ -33,7 +32,6 @@
 .drawingPhoto { grid-column: 2; }
 
 @media (max-width: 640px) {
-  .page > header { min-height: auto; }
   .statement { width: calc(100% - 48px); padding: 0; margin-top: 56px; }
   .grid { grid-template-columns: 1fr; gap: 36px; }
   .intro { width: auto; padding: 0; }

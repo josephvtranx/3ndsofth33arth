@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import PortfolioHeader from "../home/PortfolioHeader";
 import Halftone from "@/components/Halftone";
 import styles from "./ink.module.css";
@@ -46,9 +45,6 @@ export default async function InkPage() {
               </a>
             ))}
           </div>
-        </div>
-        <div className={styles.booking}>
-          <Link href="/booking">interested? → booking &amp; policies</Link>
         </div>
       </section>
     </main>

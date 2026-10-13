@@ -98,3 +98,27 @@ Production builds use webpack because Turbopack's CSS worker cannot bind its
 temporary port in the managed development environment. Tests cover resizing,
 corrupt and spoofed images, metadata removal, upload limits, origin checks, and
 mocked email failure states; they do not verify live email delivery.
+
+### Instagram token renewal
+
+The production Vercel cron calls `/api/cron/instagram` daily at 10:00 UTC.
+It refreshes when 30 days or less remain, stores the returned token and expiry,
+and skips tokens refreshed within the last 24 hours. The first run refreshes the
+existing `INSTAGRAM_ACCESS_TOKEN`; it must already be an eligible long-lived token.
+Expired or revoked tokens require a new Instagram authorization.
+
+Activation (not enabled by local development):
+1. Connect a **private** Vercel Blob store to this project's **Production** environment only.
+   Set its `BLOB_READ_WRITE_TOKEN`; never connect a public store or share the production store with previews.
+2. Set a random production `CRON_SECRET` (at least 32 random bytes), plus the existing
+   `INSTAGRAM_ACCESS_TOKEN` and `INSTAGRAM_USER_ID`. Keep all values server-only.
+3. Deploy, then run the cron through the Vercel dashboard and confirm a successful response.
+   Responses contain only renewal status and expiration time, never a token.
+4. Check Vercel cron/function failures; this implementation logs safe failures but does
+   not send email alerts. Confirm the Ink gallery remains live after the first refresh.
+
+Private storage reads bypass cached token versions. Conditional writes prevent a
+concurrent renewal from silently replacing a newer record. A failed read or refresh
+does not overwrite the saved token. Without storage configured the gallery continues
+using its environment token; the renewal endpoint returns 503. Never log raw Meta
+refresh URLs or errors: the refresh API carries the credential in its query string.

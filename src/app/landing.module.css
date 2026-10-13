@@ -167,29 +167,8 @@
   color: #888;
 }
 
-.booking {
-  position: absolute;
-  z-index: 1;
-  top: 3.8%;
-  right: 1.1%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 10px 16px;
-  background: #111;
-  color: #fdfdfd;
-  font-family: var(--font-cutive-mono), monospace;
-  font-size: clamp(13px, 1vw, 18px);
-  letter-spacing: 2px;
-}
-
-.booking:hover { background: #333; color: #fff; }
-.booking:focus-visible { outline-color: #111; }
-
 @media (max-width: 600px) {
   .star { left: 20px; top: 24px; }
-  .booking { right: 18px; top: 18px; padding: 8px 12px; }
   .identity h1 {
     top: 42%;
     top: round(nearest, 42%, 1px);

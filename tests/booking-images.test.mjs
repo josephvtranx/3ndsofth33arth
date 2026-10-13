@@ -93,7 +93,7 @@ function inquiry(images) {
   const data = new FormData();
   for (const [key, value] of Object.entries({
     submissionId: "test-submission-123456", name: "Test", email: "test@example.com",
-    workType: "tattoo", placement: "arm", size: "4 x 6", designType: "custom",
+    instagram: "@test", workType: "tattoo", placement: "arm", size: "4 x 6", designType: "custom",
     design: "botanical", budget: "$300", availability: "october 5–12", is18: "true",
   })) data.set(key, value);
   for (let i = 0; i < images; i++) data.append("images", new File([new Uint8Array(budget)], `${i}.jpg`, { type: "image/jpeg" }));

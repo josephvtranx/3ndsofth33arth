@@ -18,7 +18,6 @@ export default function LandingPage() {
           <p>tattoo · writing · mixed media</p>
         </div>
       </Link>
-      <Link href="/booking" className={styles.booking}>booking <span aria-hidden="true">→</span></Link>
     </main>
   );
 }

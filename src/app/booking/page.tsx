@@ -8,9 +8,7 @@ import {
   BOOKING_IMAGE_TYPES,
   MAX_BOOKING_IMAGES,
   MAX_BOOKING_TOTAL_BYTES,
-  WORK_TYPES,
   type DesignType,
-  type WorkType,
 } from "@/lib/booking";
 import { MAX_SOURCE_IMAGE_BYTES, prepareBookingImage } from "./prepare-image";
 
@@ -18,9 +16,9 @@ type Attached = { file: File; url: string };
 type SubmitStatus = "idle" | "submitting" | "success" | "error";
 
 const inputCls =
-  "w-full box-border bg-[#7d7d7d] border border-[#999] text-white px-3.5 py-3 text-base outline-none font-mono tracking-[0.5px]";
+  "w-full box-border bg-white border border-black text-ink placeholder:!text-[#666] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black px-3.5 py-3 text-base outline-none font-mono tracking-[0.5px]";
 const labelCls = "font-mono text-[13px] tracking-[1px]";
-const hintCls = "mb-2.5 mt-1.5 text-sm leading-[1.5] text-[#d5d5d5]";
+const hintCls = "mb-2.5 mt-1.5 text-sm leading-[1.5] text-[#555]";
 
 function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
@@ -28,8 +26,8 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`flex-1 cursor-pointer border border-[#999] p-2.5 font-mono text-[13px] tracking-[1px] ${
-        on ? "bg-paper text-ink" : "bg-transparent text-[#ddd]"
+      className={`flex-1 cursor-pointer border border-black p-2.5 font-mono text-[13px] tracking-[1px] ${
+        on ? "bg-white text-ink ring-1 ring-black font-bold" : "bg-white text-ink"
       }`}
     >
       {children}
@@ -38,7 +36,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 }
 
 export default function BookingPage() {
-  const [workType, setWorkType] = useState<WorkType>("tattoo");
+  const workType = "tattoo";
   const [designType, setDesignType] = useState<DesignType>("custom");
   const [fields, setFields] = useState({
     name: "", email: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "",
@@ -180,15 +178,14 @@ export default function BookingPage() {
       filesRef.current = [];
       setFiles([]);
       setFields({ name: "", email: "", ig: "", placement: "", size: "", design: "", budget: "", avail: "" });
-      setWorkType("tattoo");
       setDesignType("custom");
       setIs18(false);
       submissionIdRef.current = "";
       setStatus("success");
       setStatusMessage(
         result.confirmationSent
-          ? "your inquiry is in esther's inbox — check your email for a confirmation."
-          : "your inquiry is in esther's inbox. esther will reply within a couple business days.",
+          ? "your inquiry is in esther's inbox — check your email for a confirmation. esther will get back to you via instagram dm."
+          : "your inquiry is in esther's inbox. esther will get back to you via instagram dm.",
       );
     } catch {
       setStatus("error");
@@ -208,34 +205,25 @@ export default function BookingPage() {
 
       <header className="mx-auto max-w-[860px] px-6 pb-[30px] pt-[110px]">
         <h1 className="m-0 text-[clamp(40px,6vw,76px)] font-extralight tracking-[-0.03em]">
-          3ndsofth33arth <strong className="font-bold">booking</strong>
+          3ndsofth33arth
         </h1>
         <p className="mt-[22px] max-w-[640px] text-lg leading-[1.55]">
           <strong>18+ only.</strong> fill this out and hit submit — your inquiry goes straight to my inbox with
-          everything i need in one message. i reply in order, so please don&apos;t send follow-ups while you wait; it
-          prolongs your spot in the waitlist.
+          everything i need in one message. please be ready with <strong>reference photos</strong> to upload,
+          <strong> ideas, placement,</strong> approximate <strong>size,</strong> and <strong>availability</strong> for the current booking month.
         </p>
       </header>
 
       <section className="relative mx-auto max-w-[860px] px-6 pb-20 pt-[30px]">
         <form
           onSubmit={handleSubmit}
-          className="bg-[#6b6b6b] p-[clamp(28px,5vw,56px)] text-[#f2f2f2]"
+          className="border border-black bg-white p-[clamp(28px,5vw,56px)] text-ink"
         >
           <label className="absolute -left-[10000px]" aria-hidden="true">
             website
             <input name="website" type="text" tabIndex={-1} autoComplete="off" />
           </label>
           <div className="flex flex-col gap-[26px]">
-            <div>
-              <p className={`${labelCls} mb-2.5`}>work type</p>
-              <div className="flex gap-2.5">
-                {WORK_TYPES.map((w) => (
-                  <Toggle key={w} on={workType === w} onClick={() => setWorkType(w)}>{w}</Toggle>
-                ))}
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
               <label className={`flex flex-col gap-2 ${labelCls}`}>
                 name
@@ -251,7 +239,7 @@ export default function BookingPage() {
                   aria-invalid={Boolean(fieldErrors.name)}
                   className={inputCls}
                 />
-                {fieldErrors.name && <span className="text-xs text-[#fff1a8]">{fieldErrors.name}</span>}
+                {fieldErrors.name && <span className="text-xs text-[#a11]">{fieldErrors.name}</span>}
               </label>
               <label className={`flex flex-col gap-2 ${labelCls}`}>
                 email
@@ -267,15 +255,16 @@ export default function BookingPage() {
                   aria-invalid={Boolean(fieldErrors.email)}
                   className={inputCls}
                 />
-                {fieldErrors.email && <span className="text-xs text-[#fff1a8]">{fieldErrors.email}</span>}
+                {fieldErrors.email && <span className="text-xs text-[#a11]">{fieldErrors.email}</span>}
               </label>
             </div>
 
             <label className={`flex flex-col gap-2 ${labelCls}`}>
-              instagram handle <span className="text-[#d5d5d5]">(optional)</span>
+              instagram handle
               <input
                 name="instagram"
                 type="text"
+                required
                 maxLength={80}
                 value={fields.ig}
                 onChange={set("ig")}
@@ -283,7 +272,7 @@ export default function BookingPage() {
                 aria-invalid={Boolean(fieldErrors.instagram)}
                 className={inputCls}
               />
-              {fieldErrors.instagram && <span className="text-xs text-[#fff1a8]">{fieldErrors.instagram}</span>}
+              {fieldErrors.instagram && <span className="text-xs text-[#a11]">{fieldErrors.instagram}</span>}
             </label>
 
             <div>
@@ -303,7 +292,7 @@ export default function BookingPage() {
                 aria-invalid={Boolean(fieldErrors.placement)}
                 className={inputCls}
               />
-              {fieldErrors.placement && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.placement}</p>}
+              {fieldErrors.placement && <p className="mt-2 text-xs text-[#a11]">{fieldErrors.placement}</p>}
             </div>
 
             <div>
@@ -322,7 +311,7 @@ export default function BookingPage() {
                 aria-invalid={Boolean(fieldErrors.size)}
                 className={inputCls}
               />
-              {fieldErrors.size && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.size}</p>}
+              {fieldErrors.size && <p className="mt-2 text-xs text-[#a11]">{fieldErrors.size}</p>}
             </div>
 
             <div>
@@ -347,7 +336,7 @@ export default function BookingPage() {
                 aria-invalid={Boolean(fieldErrors.design)}
                 className={`${inputCls} resize-y`}
               />
-              {fieldErrors.design && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.design}</p>}
+              {fieldErrors.design && <p className="mt-2 text-xs text-[#a11]">{fieldErrors.design}</p>}
             </div>
 
             <div>
@@ -370,22 +359,22 @@ export default function BookingPage() {
                 onClick={() => fileRef.current?.click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
-                className="w-full cursor-pointer border border-dashed border-[#aaa] bg-[#7d7d7d] p-[22px] text-center font-mono text-[13px] tracking-[1px] text-[#e5e5e5] hover:bg-[#858585] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-default disabled:opacity-60"
+                className="w-full cursor-pointer border border-dashed border-black bg-white p-[22px] text-center font-mono text-[13px] tracking-[1px] text-ink hover:bg-[#f5f5f5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-default disabled:opacity-60"
               >
                 {preparingImages ? "preparing photos…" : files.length >= MAX_BOOKING_IMAGES ? "all 10 photos added" : files.length ? "+ add more images" : "click or drag images here to attach"}
               </button>
-              <p role="status" className="mt-2 text-xs text-[#d5d5d5]">
+              <p role="status" className="mt-2 text-xs text-[#555]">
                 {preparingImages ? "resizing your photos — this may take a moment." : `${files.length} of ${MAX_BOOKING_IMAGES} photos attached`}
               </p>
               {(fileError || fieldErrors.images) && (
-                <p role="alert" className="mt-2 text-xs text-[#fff1a8]">{fileError || fieldErrors.images}</p>
+                <p role="alert" className="mt-2 text-xs text-[#a11]">{fileError || fieldErrors.images}</p>
               )}
               {files.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2.5">
                   {files.map((f, i) => (
                     <div key={f.url} className="relative w-[84px]">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={f.url} alt={f.file.name} className="block h-[84px] w-[84px] border border-[#999] object-cover" />
+                      <img src={f.url} alt={f.file.name} className="block h-[84px] w-[84px] border border-black object-cover" />
                       <button
                         type="button"
                         aria-label={`remove ${f.file.name}`}
@@ -395,7 +384,7 @@ export default function BookingPage() {
                       >
                         ✕
                       </button>
-                      <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-[#ddd]">{f.file.name}</p>
+                      <p className="mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-[10px] text-ink">{f.file.name}</p>
                     </div>
                   ))}
                 </div>
@@ -413,11 +402,11 @@ export default function BookingPage() {
                   maxLength={120}
                   value={fields.budget}
                   onChange={set("budget")}
-                  placeholder="e.g. $250–350"
+                  placeholder="e.g. $600–800"
                   aria-invalid={Boolean(fieldErrors.budget)}
                   className={inputCls}
                 />
-                {fieldErrors.budget && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.budget}</p>}
+                {fieldErrors.budget && <p className="mt-2 text-xs text-[#a11]">{fieldErrors.budget}</p>}
               </div>
               <div>
                 <p className={labelCls}>availability</p>
@@ -433,7 +422,7 @@ export default function BookingPage() {
                   aria-invalid={Boolean(fieldErrors.availability)}
                   className={inputCls}
                 />
-                {fieldErrors.availability && <p className="mt-2 text-xs text-[#fff1a8]">{fieldErrors.availability}</p>}
+                {fieldErrors.availability && <p className="mt-2 text-xs text-[#a11]">{fieldErrors.availability}</p>}
               </div>
             </div>
 
@@ -448,7 +437,7 @@ export default function BookingPage() {
               />
               i confirm i am 18 or older
             </label>
-            {fieldErrors.is18 && <p className="-mt-4 text-xs text-[#fff1a8]">{fieldErrors.is18}</p>}
+            {fieldErrors.is18 && <p className="-mt-4 text-xs text-[#a11]">{fieldErrors.is18}</p>}
 
             <button
               type="submit"
@@ -463,10 +452,10 @@ export default function BookingPage() {
                 role={status === "error" ? "alert" : "status"}
                 aria-live="polite"
                 className={`border border-dashed p-[18px] ${
-                  status === "success" ? "border-[#d6efc7] bg-[#53654e]" : "border-[#ffd3c9] bg-[#6d4f4b]"
+                  status === "success" ? "border-black bg-white text-ink" : "border-black bg-white text-[#a11]"
                 }`}
               >
-                <p className="m-0 font-mono text-sm leading-[1.6] text-white">{statusMessage}</p>
+                <p className="m-0 font-mono text-sm leading-[1.6]">{statusMessage}</p>
                 {status === "error" && (
                   <a
                     href={mailtoHref}
@@ -478,7 +467,7 @@ export default function BookingPage() {
               </div>
             )}
 
-            <p className="m-0 text-center text-sm text-[#d5d5d5]">i will get back to you within a couple business days!</p>
+            <p className="m-0 text-center text-sm text-[#555]">i will get back to you via instagram dm!</p>
           </div>
         </form>
       </section>

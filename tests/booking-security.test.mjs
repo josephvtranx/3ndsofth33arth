@@ -16,6 +16,7 @@ async function moduleUrl(path, replacements = {}) {
   return `data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`;
 }
 const bookingUrl = await moduleUrl("../src/lib/booking.ts");
+const { validateBookingForm } = await import(bookingUrl);
 const requestUrl = await moduleUrl("../src/app/api/booking/request.ts");
 const imagesUrl = await moduleUrl("../src/app/api/booking/images.ts", {
   "@/lib/booking": bookingUrl, sharp: pathToFileURL(require.resolve("sharp")).href,
@@ -33,7 +34,7 @@ function form() {
   const data = new FormData();
   for (const [key, value] of Object.entries({
     submissionId: "security-test-123456", name: "Local Test", email: "test@example.com",
-    workType: "tattoo", placement: "arm", size: "3 inches", designType: "custom",
+    instagram: "@localtest", workType: "tattoo", placement: "arm", size: "3 inches", designType: "custom",
     design: "flowers", budget: "$300", availability: "October", is18: "true",
   })) data.set(key, value);
   return data;
@@ -164,6 +165,8 @@ test("the endpoint sends sanitized copies and a separate confirmation", async (t
   assert.equal(calls.length, 2);
   assert.equal(calls[0].attachments[0].filename, "reference-1.jpg");
   assert.equal(calls[1].attachments, undefined);
+  assert.match(calls[1].text, /via instagram dm/);
+  assert.doesNotMatch(calls[1].text, /couple business days/);
 });
 
 test("confirmation failure does not erase inquiry success", async (t) => {
@@ -193,4 +196,15 @@ test("baseline security headers are applied without claiming a strict script pol
   assert.match(values["Content-Security-Policy"], /frame-ancestors 'none'/);
   assert.doesNotMatch(values["Content-Security-Policy"], /unsafe-inline|unsafe-eval/);
   assert.equal(config.poweredByHeader, false);
+});
+
+ test("Instagram handle is required, including when blank or whitespace-only", () => {
+  for (const value of [null, "", "   "]) {
+    const data = form();
+    if (value === null) data.delete("instagram"); else data.set("instagram", value);
+    const result = validateBookingForm(data);
+    assert.equal(result.ok, false);
+    assert.equal(result.fieldErrors.instagram, "please enter your instagram handle.");
+  }
+  assert.equal(validateBookingForm(form()).ok, true);
 });

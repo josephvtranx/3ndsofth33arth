@@ -68,6 +68,7 @@ export function validateBookingForm(formData: FormData): BookingValidationResult
   if (name.length > FIELD_LIMITS.name) fieldErrors.name = "name is too long.";
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fieldErrors.email = "please enter a valid email.";
   if (email.length > FIELD_LIMITS.email) fieldErrors.email = "email is too long.";
+  if (!instagram) fieldErrors.instagram = "please enter your instagram handle.";
   if (instagram.length > FIELD_LIMITS.instagram) fieldErrors.instagram = "instagram handle is too long.";
   if (!isOneOf(workType, WORK_TYPES)) fieldErrors.workType = "please choose a work type.";
   if (!placement) fieldErrors.placement = "please describe the placement.";

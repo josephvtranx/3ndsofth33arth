@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import PortfolioHeader from "./PortfolioHeader";
 import ArtworkCard from "./ArtworkCard";
+import { ARTIST_EMAIL } from "@/lib/site";
 import styles from "./home.module.css";
 
 const movements = [
@@ -19,11 +20,11 @@ export default function Home() {
       <figure className={styles.featured}>
         <div className={styles.exhibition}>
           <Image
-            src="/images/apoptosis/exhibition-overview.jpg"
+            src="/images/apoptosis/exhibition-cover-hq.png"
             alt="The five Apoptosis mixed-media artworks and accompanying poems installed at the 2026 UW Design Show"
-            width={1800}
-            height={1200}
-            sizes="116vw"
+            width={5991}
+            height={2748}
+            sizes="100vw"
             preload
             className={styles.exhibitionImage}
           />
@@ -63,7 +64,7 @@ export default function Home() {
           <p><em>Who was I, really?</em></p>
         </div>
         <figure className={styles.bookHero}>
-          <Image src="/images/apoptosis/book-open.jpg" alt="An open Apoptosis book on a textured gray surface, showing the poems Cain’s and Offering" width={1600} height={1199} sizes="100vw" />
+          <Image src="/images/apoptosis/book-open-original.png" alt="An open Apoptosis book on a textured gray surface, showing the poems Cain’s and Offering" width={1543} height={1157} sizes="100vw" />
         </figure>
         <div className={styles.prose}>
           <p>Apoptosis traces the slow unraveling of the false selves we construct to survive—and the opportunity for new life to emerge when those versions of ourselves begin to die.</p>
@@ -77,16 +78,22 @@ export default function Home() {
             <a href="/documents/apoptosis.pdf" target="_blank" rel="noreferrer" className={styles.meta}>read the full book ↗</a>
           </div>
           <div className={styles.bookGrid}>
-            <figure><Image src="/images/apoptosis/cover.jpg" alt="Apoptosis book cover" width={1600} height={1200} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>cover</figcaption></figure>
-            <figure><Image src="/images/apoptosis/book-open.jpg" alt="Interior poetry spread of the Apoptosis book" width={1600} height={1199} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>interior spread</figcaption></figure>
+            <figure><Image src="/images/apoptosis/book-cover-hq.webp" alt="Apoptosis book cover" width={1500} height={1125} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>cover</figcaption></figure>
+            <figure><Image src="/images/apoptosis/book-cover-spread.webp" alt="Full Apoptosis cover spread showing the back cover, spine, and front cover" width={1500} height={1125} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>full cover spread</figcaption></figure>
           </div>
         </section>
         <section className={styles.exhibitionSection} aria-labelledby="exhibition-title">
           <h3 id="exhibition-title" className={styles.meta}>in exhibition</h3>
           <div className={styles.exhibitionGrid}>
-            <figure><Image src="/images/apoptosis/exhibition-overview.jpg" alt="The Apoptosis collection with accompanying poems at the 2026 UW Design Show" width={1800} height={1200} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>2026 UW Design Show</figcaption></figure>
-            <figure className={styles.exhibitionTall}><Image src="/images/apoptosis/exhibition-book.jpg" alt="Apoptosis books and dried flowers displayed on a table at the exhibition" width={1800} height={1200} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>the book in exhibition</figcaption></figure>
-            <figure><Image src="/images/apoptosis/installation.jpg" alt="The five mixed-media works displayed together on a gallery wall" width={1800} height={1499} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>the collection</figcaption></figure>
+            <div className={styles.exhibitionStack}>
+              <figure><Image src="/images/apoptosis/exhibition-wall-selected.webp" alt="All five Apoptosis artworks and their poems at the 2026 UW Design Show" width={2400} height={1600} sizes="(max-width: 600px) 100vw, 48vw" /><figcaption className={styles.meta}>2026 UW Design Show</figcaption></figure>
+              <figure><Image src="/images/apoptosis/exhibition-wall-angle.webp" alt="An angled view of the five Apoptosis works along the exhibition wall" width={2400} height={1600} sizes="(max-width: 600px) 100vw, 48vw" /></figure>
+            </div>
+            <figure className={styles.exhibitionTall}><Image src="/images/apoptosis/exhibition-book-display.webp" alt="Two Apoptosis books, dried flowers, and a QR card displayed on the exhibition plinth" width={1184} height={1776} sizes="(max-width: 600px) 100vw, 48vw" /><figcaption className={styles.meta}>the book in exhibition</figcaption></figure>
+          </div>
+          <div className={styles.exhibitionBottom}>
+            <figure><Image src="/images/apoptosis/exhibition-table.webp" alt="The Apoptosis book beside dried flowers and QR cards on a white display table" width={2400} height={1600} sizes="(max-width: 600px) 100vw, 52vw" /></figure>
+            <figure><Image src="/images/apoptosis/exhibition-visitors.webp" alt="Visitors viewing the Apoptosis artworks and book at the UW Design Show" width={2000} height={3000} sizes="(max-width: 600px) 100vw, 42vw" /></figure>
           </div>
         </section>
       </article>
@@ -99,8 +106,7 @@ export default function Home() {
       </section>
       <footer className={styles.footer}>
         <a href="#top">Back to Top</a>
-        <Link href="/contact">Contact</Link>
-        <Link href="/booking">Booking</Link>
+        <a href={`mailto:${ARTIST_EMAIL}`}>Email</a>
       </footer>
     </main>
   );

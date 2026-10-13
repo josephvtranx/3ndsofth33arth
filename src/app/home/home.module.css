@@ -48,20 +48,20 @@
 }
 
 .exhibition {
+  width: 100%;
+  margin-inline: auto;
   position: relative;
-  aspect-ratio: 2.25;
+  height: min(44.4vw, max(240px, calc(100svh - clamp(88px, 8.1vw, 180px) - 136px)));
   overflow: hidden;
   background: #ddd;
 }
 
 .exhibitionImage {
-  position: absolute;
-  top: -44%;
-  left: -8%;
-  width: 116%;
-  max-width: none;
-  height: auto;
-  filter: grayscale(1) brightness(1.18) contrast(1.12);
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .caption {
@@ -133,26 +133,30 @@
 .artworkOverlay p { margin: 0; }
 .artworkTitle { text-transform: capitalize; }
 .artworkOverlay .artworkDescription { margin-top: 20px; }
-.bookHero { margin: 0; background: #181818; }
-.bookHero img { width: 100%; height: auto; display: block; }
-.bookSection, .exhibitionSection { padding: 0 3%; margin-top: 64px; }
+.bookHero { width: 100%; margin: 0; aspect-ratio: 16 / 9; overflow: hidden; background: #181818; }
+.bookHero img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center; }
+.bookSection, .exhibitionSection { padding: 0 2.4%; margin-top: 64px; }
 .sectionHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 .sectionHeading a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; }
-.bookGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.bookGrid figure, .exhibitionGrid figure { margin: 0; }
+.bookGrid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.4vw, 24px); }
+.bookGrid figure, .exhibitionGrid figure, .exhibitionBottom figure { margin: 0; }
 .bookGrid img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 .bookGrid figcaption, .exhibitionGrid figcaption { padding-top: 12px; }
-.exhibitionSection > h3 { margin-bottom: 24px; }
-.exhibitionGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px 24px; align-items: start; }
-.exhibitionGrid img { width: 100%; height: auto; display: block; }
-.exhibitionTall { grid-column: 2; grid-row: 1 / span 2; }
-.exhibitionTall img { aspect-ratio: 3 / 4; object-fit: cover; }
-.otherWorks { padding: 150px 6% 0; }
-.otherWorks h2 { text-align: center; margin-bottom: 100px; }
+.exhibitionSection { margin-top: 40px; }
+.exhibitionSection > h3 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.exhibitionSection > h3::after { content: ""; width: 12%; height: 5px; background: #171717; }
+.exhibitionGrid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.4vw, 24px); align-items: start; }
+.exhibitionStack { display: grid; gap: clamp(24px, 3vw, 48px); }
+.exhibitionGrid img, .exhibitionBottom img { width: 100%; height: auto; display: block; }
+.exhibitionStack img { aspect-ratio: 3 / 2; object-fit: cover; }
+.exhibitionTall img { aspect-ratio: 2 / 3; object-fit: cover; }
+.exhibitionBottom { display: grid; grid-template-columns: 1.28fr 1fr; gap: clamp(20px, 2.2vw, 36px); align-items: start; margin-top: clamp(28px, 4vw, 64px); padding-right: 1.5%; }
+.otherWorks { padding: clamp(64px, 8.5vw, 150px) 5.5% 0; }
+.otherWorks h2 { text-align: center; margin-bottom: clamp(60px, 8vw, 120px); }
 .workLinks { font-size: clamp(44px, 8.5vw, 140px); font-weight: 500; line-height: 1; letter-spacing: -0.055em; }
 .workLinks a { text-decoration: none; }
 .workLinks span { color: #888; }
-.footer { display: flex; justify-content: center; gap: 48px; padding: 96px 24px 150px; font-size: 12px; }
+.footer { display: flex; justify-content: center; gap: clamp(72px, 12vw, 180px); padding: 96px 24px 150px; font-size: 12px; }
 .footer a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; text-underline-offset: 4px; }
 
 @media (max-width: 600px) {
@@ -166,7 +170,8 @@
   .artworkOverlay { width: min(85%, 300px); padding: 16px; }
   .bookSection, .exhibitionSection { padding: 0 20px; margin-top: 44px; }
   .sectionHeading { flex-wrap: wrap; gap: 8px; }
-  .bookGrid, .exhibitionGrid { grid-template-columns: 1fr; gap: 32px; }
+  .bookGrid, .exhibitionGrid, .exhibitionBottom { grid-template-columns: 1fr; gap: 32px; }
+  .exhibitionBottom { padding-right: 0; }
   .exhibitionTall { grid-column: auto; grid-row: auto; }
   .exhibitionTall img { aspect-ratio: auto; }
   .otherWorks { padding: 80px 24px 0; }

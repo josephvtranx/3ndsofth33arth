@@ -16,7 +16,7 @@ export default function LandingInteractions() {
     };
     const keydown = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || event.isComposing) return;
-      // Preserve Tab navigation and activation of the focused booking link.
+      // Preserve native interaction with other focused controls.
       if (event.target instanceof Element) {
         const control = event.target.closest("a, button, input, textarea, select");
         if (control && control.getAttribute("href") !== "/home") return;

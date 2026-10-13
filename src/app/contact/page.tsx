@@ -1,23 +1,47 @@
+import Image from "next/image";
 import PortfolioHeader from "../home/PortfolioHeader";
-import Link from "next/link";
+import styles from "./contact.module.css";
 
+const studioMap = "https://www.google.com/maps/search/?api=1&query=Inscape+Arts+815+Seattle+Blvd+S+Seattle+WA+98134";
 
-export default function Page() {
-  return <main className="min-h-screen bg-white"><PortfolioHeader />
-      {/* contact */}
-      <section id="contact" className="relative px-6 pb-40 pt-[60px] text-center">
-        <h2 className="mb-7 text-[clamp(48px,6vw,80px)] font-light tracking-[-0.02em]">contact</h2>
-        <p className="mb-9 text-[19px] leading-[1.6]">
-          tattoo inquiries go through the booking form.<br />
-          everything else — <a href="https://instagram.com/3ndsofth33arth" className="underline underline-offset-4">DM me</a>.
-        </p>
-        <Link
-          href="/booking"
-          className="inline-block bg-ink px-[34px] py-4 font-mono text-base tracking-[2px] !text-paper no-underline hover:bg-[#444]"
-        >
-          book a tattoo →
-        </Link>
-        <p className="mt-[90px] font-mono text-xs tracking-[1px] text-[#aaa]">✺ esther ko · 3ndsofth33arth</p>
+export default function ContactPage() {
+  return (
+    <main className={styles.page}>
+      <PortfolioHeader active="contact" />
+      <section aria-label="Location and contact details" className={styles.content}>
+        <div className={styles.details}>
+          <section aria-labelledby="location-title">
+            <h2 id="location-title">LOCATION</h2>
+            <div className={styles.location}>
+              <address>
+                Inscape Arts Building<br />
+                815 Seattle Blvd S, B-14<br />
+                Seattle, WA 98134
+              </address>
+              <a className={styles.mapLink} href={studioMap} target="_blank" rel="noreferrer" aria-label="Find Inscape Arts Building on Google Maps">
+                <svg width="22" height="38" viewBox="0 0 22 38" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="9" fill="currentColor" />
+                  <path d="M11 19V35" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </a>
+            </div>
+          </section>
+          <section aria-labelledby="contact-title" className={styles.contacts}>
+            <h2 id="contact-title">CONTACT</h2>
+            <a href="mailto:contact@rhwldo.com">contact@rhwldo.com</a>
+            <a href="https://www.instagram.com/3ndsofth33arth/" target="_blank" rel="noreferrer">https://www.instagram.com/3ndsofth33arth/</a>
+            <a href="https://www.tiktok.com/@3ndsofth33arth" target="_blank" rel="noreferrer">https://www.tiktok.com/@3ndsofth33arth</a>
+          </section>
+        </div>
+        <Image
+          className={styles.locationPhoto}
+          src="/images/location.jpg"
+          alt="Historic photograph of the Inscape Arts Building in Seattle"
+          width={1080}
+          height={656}
+          sizes="(max-width: 700px) calc(100vw - 48px), 84.4vw"
+        />
       </section>
-  </main>;
+    </main>
+  );
 }
