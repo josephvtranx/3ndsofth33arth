@@ -6,6 +6,7 @@ import styles from "./home.module.css";
 
 type Work = {
   name: string;
+  src?: string;
   width: number;
   height: number;
   alt: string;
@@ -60,7 +61,7 @@ export default function ArtworkCard({ work }: { work: Work }) {
           setDismissed(pinned);
         }}
       >
-        <Image src={`/images/apoptosis/${work.name}.jpg`} alt={work.alt} width={work.width} height={work.height} sizes="(max-width: 600px) 90vw, 30vw" className={work.name === "death" ? styles.deathImage : work.name === "rebirth" ? styles.rebirthImage : undefined} />
+        <Image src={work.src ?? `/images/apoptosis/${work.name}.jpg`} alt={work.alt} width={work.width} height={work.height} sizes="(max-width: 600px) 90vw, 30vw" className={work.name === "death" ? styles.deathImage : work.name === "rebirth" ? styles.rebirthImage : undefined} />
       </button>
       <figcaption className={styles.artworkLabel}>{work.name}</figcaption>
       <div id={detailsId} className={styles.artworkOverlay} aria-hidden={!open}>
