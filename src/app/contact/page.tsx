@@ -36,10 +36,10 @@ export default function ContactPage() {
         </div>
         <Image
           className={styles.locationPhoto}
-          src="/images/location.jpg"
-          alt="Historic photograph of the Inscape Arts Building in Seattle"
-          width={1080}
-          height={656}
+          src="/images/studio-interior.jpeg"
+          alt="Black-and-white photograph of the tattoo studio inside Inscape Arts Building"
+          width={1024}
+          height={768}
           sizes="(max-width: 700px) calc(100vw - 48px), 84.4vw"
         />
       </section>
