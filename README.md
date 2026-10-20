@@ -19,7 +19,7 @@ The project evolved through direct feedback from Esther: refining image presenta
 - **Instagram token renewal:** a scheduled server-side workflow with private token storage, reducing the need for manual token updates.
 - **Production deployment:** a custom domain on Vercel, with updates published from GitHub.
 
-The site opens directly to the portfolio. The original landing page is preserved in the code for future use. The Works page currently displays “Coming soon.” Booking is available through a shareable, noindex route; it is not an authenticated or private page.
+The site opens directly to the portfolio. The original landing page is preserved in the code for future use. The Works page currently displays “Coming soon.” Booking (`/booking`) and the worldwide waitlist (`/waitlist`) use separate shareable, noindex routes with no links from the public navigation or between the forms. They are unlisted, not authenticated or private pages.
 
 ## Engineering decisions
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import WorldwideWaitlist from "./WorldwideWaitlist";
 import { ARTIST_EMAIL, HOURLY_RATE, DEPOSIT } from "@/lib/site";
 import {
   BOOKING_IMAGE_TYPES,
@@ -36,7 +35,6 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 }
 
 export default function BookingPage() {
-  const [activeTab, setActiveTab] = useState("booking");
   const workType = "tattoo";
   const [designType, setDesignType] = useState<DesignType>("custom");
   const [fields, setFields] = useState({
@@ -205,24 +203,12 @@ export default function BookingPage() {
         <h1 className="m-0 text-[clamp(40px,6vw,76px)] font-extralight tracking-[-0.03em]">
           3ndsofth33arth
         </h1>
-        <div role="tablist" aria-label="Inquiry type" className="mt-7 flex gap-4 border-b border-black">
-          {["booking", "worldwide waitlist"].map((tab, index) => <button key={tab} type="button" role="tab" id={`inquiry-tab-${index}`} aria-controls={`inquiry-panel-${index}`} aria-selected={activeTab === tab} tabIndex={activeTab === tab ? 0 : -1} onClick={() => setActiveTab(tab)} onKeyDown={event => {
-            if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
-              event.preventDefault();
-              const next = event.key === "Home" ? 0 : event.key === "End" ? 1 : 1 - index;
-              setActiveTab(next === 0 ? "booking" : "worldwide waitlist");
-              document.getElementById(`inquiry-tab-${next}`)?.focus();
-            }
-          }} className={`min-h-11 cursor-pointer px-2 py-3 font-mono text-sm focus-visible:outline-2 focus-visible:outline-offset-2 ${activeTab === tab ? "border-b-2 border-black font-bold" : "text-[#666]"}`}>{tab}</button>)}
-        </div>
-        {activeTab === "booking" ? <p className="mt-[22px] max-w-[640px] text-lg leading-[1.55]">
+        <p className="mt-[22px] max-w-[640px] text-lg leading-[1.55]">
           <strong>18+ only.</strong> fill this out and hit submit — your inquiry goes straight to my inbox with
           everything i need in one message. please be ready with <strong>reference photos</strong> to upload,
           <strong> ideas, placement,</strong> approximate <strong>size,</strong> and <strong>availability</strong> for the current booking month.
-        </p> : <p className="mt-[22px] max-w-[640px] text-lg leading-[1.55]">Outside Seattle? let me know where you are. join the worldwide waitlist to hear from me if I plan a visit to your city. joining expresses interest it does not confirm an appointment or guarantee a visit.</p>}
+        </p>
       </header>
-      <div role="tabpanel" id="inquiry-panel-1" aria-labelledby="inquiry-tab-1" hidden={activeTab !== "worldwide waitlist"}><WorldwideWaitlist /></div>
-      <div role="tabpanel" id="inquiry-panel-0" aria-labelledby="inquiry-tab-0" hidden={activeTab !== "booking"}>
 
       <section className="relative mx-auto max-w-[860px] px-6 pb-20 pt-[30px]">
         <form
@@ -542,7 +528,6 @@ export default function BookingPage() {
           ✺ <Link href="/home">esther ko</Link> · @3ndsofth33arth
         </p>
       </section>
-      </div>
     </div>
   );
 }
