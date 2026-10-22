@@ -74,7 +74,10 @@ export default function Home() {
         <section className={styles.bookSection} aria-labelledby="book-title">
           <div className={styles.sectionHeading}>
             <h3 id="book-title" className={styles.meta}>apoptosis: the burial before the bloom</h3>
-            <a href="/documents/apoptosis.pdf" target="_blank" rel="noreferrer" className={styles.meta}>read the full book ↗</a>
+            <div className={styles.bookLinks}>
+              <a href="/documents/apoptosis.pdf" target="_blank" rel="noreferrer" className={styles.meta}>read the full book ↗</a>
+              <a href="https://www.amazon.com/Apoptosis-Burial-Before-Esther-Ko/dp/B0H3MW1WZ4?sr=8-4" target="_blank" rel="noopener noreferrer" className={styles.meta}>purchase a copy ↗</a>
+            </div>
           </div>
           <div className={styles.bookGrid}>
             <figure><Image src="/images/apoptosis/book-cover-hq.webp" alt="Apoptosis book cover" width={1500} height={1125} sizes="(max-width: 600px) 100vw, 50vw" /><figcaption className={styles.meta}>cover</figcaption></figure>

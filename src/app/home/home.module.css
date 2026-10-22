@@ -138,6 +138,8 @@
 .bookSection, .exhibitionSection { padding: 0 2.4%; margin-top: 64px; }
 .sectionHeading { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 .sectionHeading a { min-height: 44px; display: inline-flex; align-items: center; text-decoration: underline; text-underline-offset: 4px; }
+.bookLinks { display: flex; flex-direction: column; align-items: flex-start; }
+.bookLinks a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .bookGrid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 1.4vw, 24px); }
 .bookGrid figure, .exhibitionGrid figure, .exhibitionBottom figure { margin: 0; }
 .bookGrid img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
