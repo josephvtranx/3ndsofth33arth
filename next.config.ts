@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  distDir: process.env.BROWSER_TEST_BUILD === "1" ? ".next-browser-tests" : ".next",
   headers() {
     return [{
       source: "/:path*",

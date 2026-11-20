@@ -1,3 +1,4 @@
+import { protectForm } from "@/lib/form-protection";
 import { renderEmail } from "@/lib/email-template";
 import { ARTIST_EMAIL } from "@/lib/site";
 import { formatBookingInquiry, validateBookingForm } from "@/lib/booking";
@@ -29,6 +30,9 @@ export async function POST(request: Request) {
   if (!validation.ok) {
     return jsonError("please check the highlighted information and try again.", 400, validation.fieldErrors);
   }
+
+  const blocked = await protectForm(request, formData, "booking");
+  if (blocked) return blocked;
 
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.BOOKING_FROM_EMAIL;

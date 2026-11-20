@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import FormVerification from "@/components/FormVerification";
 import { ARTIST_EMAIL, HOURLY_RATE, DEPOSIT } from "@/lib/site";
 import {
   BOOKING_IMAGE_TYPES,
@@ -35,6 +36,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 }
 
 export default function BookingPage() {
+  const [verificationAttempt, setVerificationAttempt] = useState(0);
   const workType = "tattoo";
   const [designType, setDesignType] = useState<DesignType>("custom");
   const [fields, setFields] = useState({
@@ -189,6 +191,8 @@ export default function BookingPage() {
     } catch {
       setStatus("error");
       setStatusMessage("your inquiry could not be sent. please try again or email esther directly.");
+    } finally {
+      setVerificationAttempt(n => n + 1);
     }
   };
 
@@ -434,6 +438,8 @@ export default function BookingPage() {
               i confirm i am 18 or older
             </label>
             {fieldErrors.is18 && <p className="-mt-4 text-xs text-[#a11]">{fieldErrors.is18}</p>}
+
+            <FormVerification action="booking" attempt={verificationAttempt} />
 
             <button
               type="submit"

@@ -24,6 +24,7 @@ const imagesUrl = await moduleUrl("../src/app/api/booking/images.ts", {
 const { prepareEmailAttachments } = await import(imagesUrl);
 const { readBookingForm, validateRequestHeaders, MAX_REQUEST_BYTES } = await import(requestUrl);
 const { POST } = await import(await moduleUrl("../src/app/api/booking/route.ts", {
+  "@/lib/form-protection": await moduleUrl("../src/lib/form-protection.ts"),
   "@/lib/email-template": await moduleUrl("../src/lib/email-template.ts"),
   "@/lib/booking": bookingUrl,
   "@/lib/site": await moduleUrl("../src/lib/site.ts"),
@@ -209,3 +210,13 @@ test("baseline security headers are applied without claiming a strict script pol
   }
   assert.equal(validateBookingForm(form()).ok, true);
 });
+
+ test("spam protection blocks valid submissions before any email is sent", async (t) => {
+  const keys = ["VERCEL_ENV", "TURNSTILE_SECRET_KEY", "UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN", "FORM_RATE_LIMIT_SECRET", "TURNSTILE_ALLOWED_HOSTNAMES"];
+  const old = Object.fromEntries(keys.map(k => [k, process.env[k]]));
+  Object.assign(process.env, { VERCEL_ENV: "production", TURNSTILE_SECRET_KEY: "test", UPSTASH_REDIS_REST_URL: "https://redis.example", UPSTASH_REDIS_REST_TOKEN: "test", FORM_RATE_LIMIT_SECRET: "salt", TURNSTILE_ALLOWED_HOSTNAMES: "example.com" });
+  t.after(() => { for (const k of keys) { if (old[k] === undefined) delete process.env[k]; else process.env[k] = old[k]; } });
+  t.mock.method(globalThis, "fetch", async (url) => { assert.equal(url, "https://redis.example"); return Response.json({ result: [6, 3600] }); });
+  const data = form(); data.set("cf-turnstile-response", "test-token");
+  assert.equal((await POST(request(data))).status, 429);
+ });

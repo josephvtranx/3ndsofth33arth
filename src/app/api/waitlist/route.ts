@@ -1,3 +1,6 @@
+import { findLocation } from "@/lib/waitlist-data/locations.mjs";
+import { saveSignup, markArtistEmailSent } from "@/lib/waitlist-data/records.mjs";
+import { protectForm } from "@/lib/form-protection";
 import { renderEmail } from "@/lib/email-template";
 import { ARTIST_EMAIL } from "@/lib/site";
 import { validateWaitlist } from "@/lib/waitlist";
@@ -18,9 +21,28 @@ export async function POST(request: Request) {
   if (String(form.get("website") ?? "").trim()) return reply({ success: true });
   const { fields, errors, ok } = validateWaitlist(form);
   if (!ok) return reply({ error: "please check the highlighted fields.", fieldErrors: errors }, 400);
+  const blocked = await protectForm(request, form, "waitlist");
+  if (blocked) return blocked;
+
+  try {
+    const location = await findLocation(fields.locationId);
+    if (!location) return reply({ error: "please select a city from the search results.", fieldErrors: { locationId: "please select a city from the search results." } }, 400);
+    fields.city = location.name;
+    fields.country = location.country;
+  } catch { return reply({ error: "location search is temporarily unavailable. please try again." }, 503); }
+
+  let savedId: string | undefined;
+  if (process.env.WAITLIST_STORAGE_ENABLED === "true") {
+    try {
+      savedId = (await saveSignup(fields, { sourceId: `form:${fields.submissionId}` })).id;
+    }
+    catch { return reply({ error: "the waitlist is temporarily unavailable. please try again." }, 503); }
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.BOOKING_FROM_EMAIL;
   const to = process.env.BOOKING_TO_EMAIL || ARTIST_EMAIL;
+  if ((!apiKey || !from) && savedId) return reply({ success: true, confirmationSent: false });
   if (!apiKey || !from) return reply({ error: "the waitlist is temporarily unavailable. please try again later." }, 503);
   const send = (body: object, suffix: string) => fetch("https://api.resend.com/emails", {
     method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `waitlist-${fields.submissionId}-${suffix}` },
@@ -38,7 +60,9 @@ export async function POST(request: Request) {
       text: ["WORLDWIDE WAITLIST", "", `name: ${fields.name}`, `email: ${fields.email}`, `city: ${fields.city}`, `country: ${fields.country}`, `instagram: ${fields.instagram}`, "", "18+ confirmed. Agreed to be contacted about visits to their city.", "This is an expression of interest, not a confirmed appointment."].join("\n"),
     }, "artist");
     if (!result.ok) throw new Error("Delivery failed");
+    if (savedId) await markArtistEmailSent(savedId);
   } catch {
+    if (savedId) return reply({ success: true, confirmationSent: false });
     return reply({ error: "your waitlist request could not be sent. please try again." }, 502);
   }
   let confirmationSent = false;
