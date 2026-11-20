@@ -31,6 +31,18 @@ function CityPeople({city,onResolved}:{city:City;onResolved:(cities:City[])=>voi
 export default function Dashboard(){
  const [view,setView]=useState<'active'|'resolved'>('active');
  const side=useRef<HTMLElement>(null);
+ useEffect(()=>{
+  const panel=side.current;if(!panel)return;
+  const desktop=matchMedia('(min-width:601px)');
+  function containWheel(event:WheelEvent){
+   if(!desktop.matches||event.ctrlKey||!panel)return;
+   const atTop=panel.scrollTop<=0;
+   const atBottom=panel.scrollTop+panel.clientHeight>=panel.scrollHeight-1;
+   if((event.deltaY<0&&atTop)||(event.deltaY>0&&atBottom))event.preventDefault();
+  }
+  panel.addEventListener('wheel',containWheel,{passive:false});
+  return()=>panel.removeEventListener('wheel',containWheel);
+ },[]);
  const [mapSelection,setMapSelection]=useState<{id:string}|null>(null);
  useEffect(()=>{
   if(!mapSelection)return;
@@ -39,10 +51,12 @@ export default function Dashboard(){
    // Wait for the previous city to collapse so the destination stops moving.
    await Promise.allSettled((side.current?.getAnimations({subtree:true})||[]).map(animation=>animation.finished));
    if(cancelled)return;
-   document.getElementById('city-row-'+mapSelection.id)?.scrollIntoView({
-    behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',
-    block:'start',inline:'nearest',
-   });
+   const row=document.getElementById('city-row-'+mapSelection.id);
+   const panel=side.current;if(!row||!panel)return;
+   const behavior=matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
+   if(matchMedia('(min-width:601px)').matches){
+    panel.scrollTo({top:panel.scrollTop+row.getBoundingClientRect().top-panel.getBoundingClientRect().top,behavior});
+   }else row.scrollIntoView({behavior,block:'start',inline:'nearest'});
   });
   return()=>{cancelled=true;cancelAnimationFrame(frame)};
  },[mapSelection]);
